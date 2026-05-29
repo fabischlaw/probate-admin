@@ -68,6 +68,9 @@ const AI_ENABLED = AI_MODE === 'api'
   ? !!process.env.ANTHROPIC_API_KEY
   : AI_MODE === 'browser';
 
+// ── Smoke-test route (no middleware, no auth) ─────────────────────────────────
+app.get('/ping', (req, res) => res.send('pong'));
+
 app.use(express.json());
 
 // Trust Railway's (and other reverse proxies') SSL termination
