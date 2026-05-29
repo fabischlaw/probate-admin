@@ -1,10 +1,10 @@
 require('dotenv').config();
 const express   = require('express');
+const fs        = require('fs');
 const axios     = require('axios');
 const path      = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
 const session   = require('express-session');
-const SQLiteStore = require('connect-sqlite3')(session);
 const { requireAuth, requireRole, ROLE_PERMISSIONS } = require('./auth/authMiddleware');
 const { createUser, verifyUser, getUsers, isSetupComplete, generateTempPassword } = require('./auth/userManager');
 const { logAuditEvent, getAuditLog, getAuditLogTotal } = require('./auth/auditLog');
@@ -54,6 +54,15 @@ const MA_FILLERS = {
 };
 // MPC-560 is court-issued — no filler; excluded from packages
 const COURT_ISSUED_FORMS = new Set(['MPC-560']);
+
+// ── Ensure data directory exists at startup ───────────────────────────────────
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  console.log('[Startup] Created data directory:', DATA_DIR);
+}
+console.log('[Startup] Data directory:', DATA_DIR);
+console.log('[Startup] Users file exists:', fs.existsSync(path.join(DATA_DIR, 'users.json')));
 
 const app  = express();
 const PORT = process.env.PORT || 3000;

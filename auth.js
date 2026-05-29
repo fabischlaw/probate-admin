@@ -11,9 +11,9 @@
 require('dotenv').config();
 
 async function getAuthHeaders() {
-  const apiKey = process.env.DECISIONVAULT_API_KEY;
+  const apiKey = process.env.DV_API_KEY;
   if (!apiKey) {
-    throw new Error('DECISIONVAULT_API_KEY is not set in the environment');
+    throw new Error('DV_API_KEY is not set in the environment');
   }
   return {
     'Authorization': `Token ${apiKey}`,
