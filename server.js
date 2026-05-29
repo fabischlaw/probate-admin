@@ -182,9 +182,29 @@ app.post('/api/users', requireAuth, requireRole('attorney', 'firm_admin'), async
   }
 });
 
+// ── Public utility endpoints (must be before auth middleware) ─────────────────
+app.get('/api/health', (req, res) => {
+  res.json({
+    status:    'ok',
+    timestamp: new Date().toISOString(),
+    version:   process.env.npm_package_version || '1.0.0',
+  });
+});
+
+app.get('/api/diag', (req, res) => {
+  res.json({
+    DATA_DIR:        PATHS.DATA_DIR,
+    DATA_DIR_ENV:    process.env.DATA_DIR || '(not set)',
+    NODE_ENV:        process.env.NODE_ENV || '(not set)',
+    dataDirExists:   fs.existsSync(PATHS.DATA_DIR),
+    usersFileExists: fs.existsSync(PATHS.USERS_FILE),
+    usersFilePath:   PATHS.USERS_FILE,
+  });
+});
+
 // ── Protect all subsequent routes ─────────────────────────────────────────────
 app.use((req, res, next) => {
-  const publicPaths = ['/login', '/setup', '/api/auth/', '/api/health', '/api/diag'];
+  const publicPaths = ['/login', '/setup', '/api/auth/'];
   if (publicPaths.some(p => req.path.startsWith(p))) return next();
   return requireAuth(req, res, next);
 });
@@ -1566,26 +1586,6 @@ app.get('/api/admin/kanban', async (req, res) => {
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message });
   }
-});
-
-// ── Health check ──────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({
-    status:    'ok',
-    timestamp: new Date().toISOString(),
-    version:   process.env.npm_package_version || '1.0.0',
-  });
-});
-
-app.get('/api/diag', (req, res) => {
-  res.json({
-    DATA_DIR:        PATHS.DATA_DIR,
-    DATA_DIR_ENV:    process.env.DATA_DIR || '(not set)',
-    NODE_ENV:        process.env.NODE_ENV || '(not set)',
-    dataDirExists:   fs.existsSync(PATHS.DATA_DIR),
-    usersFileExists: fs.existsSync(PATHS.USERS_FILE),
-    usersFilePath:   PATHS.USERS_FILE,
-  });
 });
 
 // ── Audit log ─────────────────────────────────────────────────────────────────
