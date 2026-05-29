@@ -1,6 +1,7 @@
 'use strict';
 
 const fs     = require('fs');
+const path   = require('path');
 const bcrypt = require('bcryptjs');
 const PATHS  = require('../config/paths');
 
@@ -36,12 +37,18 @@ async function createUser({ name, email, role, password }) {
   };
   data.users.push(user);
   saveUsers(data);
+  console.log('[Auth] createUser saved:', email.toLowerCase(), '| file exists:', fs.existsSync(USERS_FILE));
   const { passwordHash: _, ...safe } = user;
   return safe;
 }
 
 async function verifyUser(email, password) {
+  console.log('[Auth] verifyUser called for:', email);
+  console.log('[Auth] USERS_FILE:', USERS_FILE);
+  console.log('[Auth] File exists:', fs.existsSync(USERS_FILE));
   const data = loadUsers();
+  console.log('[Auth] Users count:', data.users.length);
+  console.log('[Auth] User emails:', data.users.map(u => u.email));
   const user = data.users.find(u => u.email === email.toLowerCase() && u.active);
   if (!user) return null;
   const valid = await bcrypt.compare(password, user.passwordHash);

@@ -145,6 +145,9 @@ app.post('/api/auth/setup', async (req, res) => {
     const { name, email, password, teamMembers } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: 'Name, email, and password required' });
     await createUser({ name, email, role: 'attorney', password });
+    console.log('[Setup] Attorney created:', email);
+    console.log('[Setup] Users file exists:', fs.existsSync(PATHS.USERS_FILE));
+    console.log('[Setup] Users file path:', PATHS.USERS_FILE);
     if (Array.isArray(teamMembers)) {
       for (const member of teamMembers) {
         if (member.name && member.email) {
