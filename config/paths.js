@@ -18,8 +18,15 @@ const PATHS = {
 };
 
 if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  console.log('[Paths] Created data directory:', DATA_DIR);
+  try {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    console.log('[Paths] Created data directory:', DATA_DIR);
+  } catch (err) {
+    // On Render, DATA_DIR is a mounted disk — it must exist already.
+    // If mkdir fails (EACCES or EROFS), the disk is not mounted yet.
+    console.error('[Paths] WARNING: cannot create DATA_DIR:', DATA_DIR, '-', err.message);
+    console.error('[Paths] If on Render, ensure the disk is mounted at', DATA_DIR);
+  }
 }
 
 module.exports = PATHS;

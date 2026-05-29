@@ -2,6 +2,7 @@ services:
   - type: web
     name: probate-admin
     runtime: node
+    plan: starter
     buildCommand: npm install && npx puppeteer browsers install chrome
     startCommand: node server.js
     envVars:
@@ -13,11 +14,9 @@ services:
         generateValue: true
       - key: DV_API_KEY
         sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
       - key: PUPPETEER_CACHE_DIR
         value: /opt/render/project/.cache/puppeteer
     disk:
-      name: data
+      name: probate-data
       mountPath: /var/data
       sizeGB: 1
