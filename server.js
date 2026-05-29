@@ -55,14 +55,10 @@ const MA_FILLERS = {
 // MPC-560 is court-issued — no filler; excluded from packages
 const COURT_ISSUED_FORMS = new Set(['MPC-560']);
 
-// ── Ensure data directory exists at startup ───────────────────────────────────
-const DATA_DIR = path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-  console.log('[Startup] Created data directory:', DATA_DIR);
-}
-console.log('[Startup] Data directory:', DATA_DIR);
-console.log('[Startup] Users file exists:', fs.existsSync(path.join(DATA_DIR, 'users.json')));
+// ── Data paths (supports Railway Volume via DATA_DIR env var) ─────────────────
+const PATHS = require('./config/paths');
+console.log('[Startup] Data directory:', PATHS.DATA_DIR);
+console.log('[Startup] Users file exists:', fs.existsSync(PATHS.USERS_FILE));
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -121,7 +117,7 @@ app.post('/api/auth/login', async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     const user = await verifyUser(email, password);
     console.log('[LOGIN] verifyUser result:', user ? 'found' : 'not found');
-    console.log('[LOGIN] users.json exists:', fs.existsSync(path.join(__dirname, 'data/users.json')));
+    console.log('[LOGIN] users.json exists:', fs.existsSync(PATHS.USERS_FILE));
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
     req.session.userId = user.id;
     req.session.user   = user;
@@ -784,10 +780,10 @@ const { runDeadlineAlertAgent, detectMatterState } = require('./agents/deadlineA
 const { runDocumentScannerAgent } = require('./agents/documentScannerAgent');
 const { identifyContacts }       = require('./forms/common');
 
-const ADMIN_FILE    = path.join(__dirname, 'data/administration.json');
-const AI_SETTINGS_FILE = path.join(__dirname, 'data/aiSettings.json');
-const FLAGS_FILE    = path.join(__dirname, 'data/flags.json');
-const SCAN_HISTORY_FILE = path.join(__dirname, 'data/scanHistory.json');
+const ADMIN_FILE       = PATHS.ADMIN_FILE;
+const AI_SETTINGS_FILE = PATHS.AI_SETTINGS_FILE;
+const FLAGS_FILE       = PATHS.FLAGS_FILE;
+const SCAN_HISTORY_FILE = PATHS.SCAN_HISTORY_FILE;
 
 const AI_SETTINGS_DEFAULTS = {
   AI_DEADLINE_ALERTS:  true,
@@ -1378,14 +1374,14 @@ app.get('/api/alerts', async (req, res) => {
 
 // GET /api/alerts/history — raw alert history
 app.get('/api/alerts/history', (req, res) => {
-  const histFile = path.join(__dirname, 'data/alertHistory.json');
+  const histFile = PATHS.ALERT_HISTORY_FILE;
   try { res.json(JSON.parse(fsSync.readFileSync(histFile, 'utf8'))); }
   catch { res.json({}); }
 });
 
 // POST /api/alerts/:alertId/dismiss — dismiss alert for this cycle
 app.post('/api/alerts/:alertId/dismiss', (req, res) => {
-  const histFile = path.join(__dirname, 'data/alertHistory.json');
+  const histFile = PATHS.ALERT_HISTORY_FILE;
   try {
     let hist = {};
     try { hist = JSON.parse(fsSync.readFileSync(histFile, 'utf8')); } catch {}

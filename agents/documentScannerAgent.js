@@ -1,16 +1,17 @@
 'use strict';
 
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const fs   = require('fs');
-const path = require('path');
+const fs    = require('fs');
+const path  = require('path');
 const axios = require('axios');
 const { getAuthHeaders }   = require('../auth');
 const { categorizeMatter } = require('../admin/detectMatterType');
+const PATHS = require('../config/paths');
 
 const DV_BASE      = 'https://api.decisionvault.com/v1';
-const ADMIN_FILE   = path.join(__dirname, '../data/administration.json');
-const FLAGS_FILE   = path.join(__dirname, '../data/flags.json');
-const HISTORY_FILE = path.join(__dirname, '../data/scanHistory.json');
+const ADMIN_FILE   = PATHS.ADMIN_FILE;
+const FLAGS_FILE   = PATHS.FLAGS_FILE;
+const HISTORY_FILE = PATHS.SCAN_HISTORY_FILE;
 
 // ── Document classifiers ─────────────────────────────────────────────────────
 // Each entry: array of keyword fragments matched against doc label + filename (lowercase)

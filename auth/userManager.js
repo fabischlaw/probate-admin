@@ -1,14 +1,10 @@
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
+const fs     = require('fs');
 const bcrypt = require('bcryptjs');
+const PATHS  = require('../config/paths');
 
-const USERS_FILE = path.join(__dirname, '../data/users.json');
-const DATA_DIR   = path.dirname(USERS_FILE);
-
-// Ensure data directory exists (Railway containers start with a fresh fs)
-fs.mkdirSync(DATA_DIR, { recursive: true });
+const USERS_FILE = PATHS.USERS_FILE;
 
 function loadUsers() {
   if (!fs.existsSync(USERS_FILE)) return { users: [] };

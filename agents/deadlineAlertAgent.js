@@ -1,17 +1,18 @@
 'use strict';
 
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const fs   = require('fs');
-const path = require('path');
+const fs    = require('fs');
+const path  = require('path');
 const axios = require('axios');
 const { getAuthHeaders }     = require('../auth');
 const { calculateDeadlines } = require('../admin/deadlineCalculator');
 const { categorizeMatter }   = require('../admin/detectMatterType');
+const PATHS = require('../config/paths');
 
 const DV_BASE      = 'https://api.decisionvault.com/v1';
-const ADMIN_FILE   = path.join(__dirname, '../data/administration.json');
-const HISTORY_FILE = path.join(__dirname, '../data/alertHistory.json');
-const EMAIL_FILE   = path.join(__dirname, '../data/lastAlertEmail.txt');
+const ADMIN_FILE   = PATHS.ADMIN_FILE;
+const HISTORY_FILE = PATHS.ALERT_HISTORY_FILE;
+const EMAIL_FILE   = PATHS.ALERT_EMAIL_FILE;
 
 // Alert severity thresholds — stricter than the deadline calculator's display thresholds
 function alertSeverity(daysUntil) {

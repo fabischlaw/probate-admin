@@ -1,9 +1,9 @@
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
+const fs    = require('fs');
+const PATHS = require('../config/paths');
 
-const AUDIT_FILE = path.join(__dirname, '../data/auditLog.json');
+const AUDIT_FILE = PATHS.AUDIT_FILE;
 
 async function logAuditEvent(req, action, matterId, matterName, detail, previousValue, newValue) {
   let log = { events: [] };
