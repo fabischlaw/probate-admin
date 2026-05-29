@@ -65,6 +65,9 @@ const AI_ENABLED = AI_MODE === 'api'
 
 app.use(express.json());
 
+// Trust Railway's (and other reverse proxies') SSL termination
+app.set('trust proxy', 1);
+
 // ── Session middleware ────────────────────────────────────────────────────────
 app.use(session({
   store: new SQLiteStore({
