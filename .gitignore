@@ -1,0 +1,31 @@
+# Environment variables — never commit
+.env
+
+# Client matter data — never commit to GitHub
+data/
+!data/.gitkeep
+!data/README.md
+
+# Downloaded form templates
+ma-templates/
+downloads/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Mac OS
+.DS_Store
+
+# Puppeteer browser cache
+.cache/
+
+# Probe/temp scripts
+probe-*.js
+tmp-*.js
+
+# Session database
+*.sqlite

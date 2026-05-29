@@ -1,0 +1,31 @@
+{
+  "name": "ri-probate-app",
+  "version": "1.0.0",
+  "description": "Rhode Island probate matter viewer via DecisionVault API",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "check-ma-forms": "node scripts/checkMaFormUpdates.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.95.2",
+    "axios": "^1.6.0",
+    "bcryptjs": "^3.0.3",
+    "canvas": "^3.2.3",
+    "connect-sqlite3": "^0.9.16",
+    "dotenv": "^16.4.0",
+    "express": "^4.18.0",
+    "express-session": "^1.19.0",
+    "node-schedule": "^2.1.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^3.11.174",
+    "puppeteer": "^24.42.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}

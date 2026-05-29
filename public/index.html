@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Probate Admin — RI &amp; MA</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* ── Shell layout ───────────────────────────────────────────────────────── */
+
+    #shell { display: flex; width: 100%; height: 100vh; overflow: hidden; }
+
+    #sidebar {
+      width: 200px;
+      flex-shrink: 0;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #sidebar-nav-items {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 1.1rem 1rem 0.85rem;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      user-select: none;
+      transition: background 0.12s, color 0.12s;
+      margin-top: 0.25rem;
+    }
+    .nav-item:hover  { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-item.active { background: rgba(255,255,255,0.13); color: #fff; font-weight: 600; }
+    .nav-sub { padding-left: 1.75rem; font-size: 0.82rem; }
+    .nav-icon { font-size: 0.95rem; flex-shrink: 0; }
+
+    /* ── Alert bell ─────────────────────────────────────────────────────────── */
+    .sidebar-bell {
+      background: none; border: none; color: rgba(255,255,255,0.75);
+      font-size: 0.95rem; cursor: pointer; padding: 0; margin-left: auto;
+      display: none; align-items: center; gap: 0.15rem; line-height: 1;
+    }
+    .sidebar-bell.visible { display: flex; }
+    .sidebar-bell:hover { color: #fff; }
+    .sidebar-bell-badge {
+      font-size: 0.62rem; font-weight: 800; background: #dc2626; color: #fff;
+      border-radius: 10px; padding: 1px 5px; min-width: 16px; text-align: center;
+      line-height: 1.5;
+    }
+    .sidebar-bell-badge.urgent-only { background: #f97316; }
+
+    /* ── Flags icon (alongside bell) ──────────────────────────────────────── */
+    .sidebar-flag {
+      background: none; border: none; color: rgba(255,255,255,0.75);
+      font-size: 0.95rem; cursor: pointer; padding: 0; margin-left: 0.4rem;
+      display: none; align-items: center; gap: 0.15rem; line-height: 1;
+    }
+    .sidebar-flag.visible { display: flex; }
+    .sidebar-flag:hover { color: #fff; }
+    .sidebar-flag-badge {
+      font-size: 0.62rem; font-weight: 800; background: #dc2626; color: #fff;
+      border-radius: 10px; padding: 1px 5px; min-width: 16px; text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── AI Features panel ────────────────────────────────────────────────── */
+    .ai-features-section {
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .ai-features-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.45rem 1rem; cursor: pointer; user-select: none;
+    }
+    .ai-features-header:hover { background: rgba(255,255,255,0.05); }
+    .ai-features-label {
+      font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: rgba(255,255,255,0.4);
+    }
+    .ai-features-chevron {
+      font-size: 0.6rem; color: rgba(255,255,255,0.3); transition: transform 0.18s;
+    }
+    .ai-features-section.collapsed .ai-features-chevron { transform: rotate(-90deg); }
+    .ai-features-body {
+      overflow: hidden; max-height: 200px; transition: max-height 0.22s ease;
+      padding: 0 0 0.35rem 0;
+    }
+    .ai-features-section.collapsed .ai-features-body { max-height: 0; }
+    .ai-feature-row {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.75rem;
+    }
+    .ai-feature-name {
+      font-size: 0.72rem; color: rgba(255,255,255,0.65); flex: 1;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ai-feature-name small { display: block; font-size: 0.62rem; color: rgba(255,255,255,0.3); }
+    .ai-toggle {
+      position: relative; display: inline-block; width: 28px; height: 16px; flex-shrink: 0;
+    }
+    .ai-toggle input { opacity: 0; width: 0; height: 0; }
+    .ai-toggle-track {
+      position: absolute; inset: 0; background: rgba(255,255,255,0.15);
+      border-radius: 8px; cursor: pointer; transition: background 0.15s;
+    }
+    .ai-toggle input:checked ~ .ai-toggle-track { background: #3b82f6; }
+    .ai-toggle input:disabled ~ .ai-toggle-track { opacity: 0.4; cursor: default; }
+    .ai-toggle-thumb {
+      position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+      background: #fff; border-radius: 50%; transition: left 0.15s; pointer-events: none;
+    }
+    .ai-toggle input:checked ~ .ai-toggle-track .ai-toggle-thumb { left: 14px; }
+    .ai-run-btn {
+      font-size: 0.62rem; padding: 2px 6px; border-radius: 3px; border: none;
+      background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.65);
+      cursor: pointer; flex-shrink: 0; white-space: nowrap;
+    }
+    .ai-run-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+    .ai-run-btn:disabled { opacity: 0.4; cursor: default; }
+    .sidebar-scan-status {
+      font-size: 0.63rem; color: rgba(255,255,255,0.32); padding: 0.1rem 0.75rem 0.35rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── Flags panel (slide from right) ────────────────────────────────────── */
+    #flag-panel {
+      position: fixed; top: 0; right: -440px; width: 420px; height: 100vh;
+      background: #fff; border-left: 1px solid #dde1e9;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.13); z-index: 900;
+      display: flex; flex-direction: column; transition: right 0.25s ease;
+      overflow: hidden;
+    }
+    #flag-panel.open { right: 0; }
+    .flag-panel-header {
+      display: flex; align-items: center; padding: 0.9rem 1rem;
+      border-bottom: 1px solid #dde1e9; background: #1a1a2e;
+      color: #fff; flex-shrink: 0;
+    }
+    .flag-panel-title { font-size: 0.92rem; font-weight: 700; flex: 1; }
+    .flag-panel-close {
+      background: none; border: none; color: rgba(255,255,255,0.7);
+      font-size: 1rem; cursor: pointer; padding: 0.1rem 0.4rem;
+      border-radius: 3px; line-height: 1;
+    }
+    .flag-panel-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .flag-panel-body {
+      flex: 1; overflow-y: auto; padding: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .flag-panel-empty { color: #9ca3af; font-size: 0.85rem; text-align: center; padding: 2rem; }
+    .flag-group-heading {
+      font-size: 0.71rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 0.4rem 0; border-bottom: 2px solid;
+      margin-top: 0.5rem;
+    }
+    .flag-group-heading.high   { color: #dc2626; border-color: #dc2626; }
+    .flag-group-heading.medium { color: #d97706; border-color: #d97706; }
+    .flag-group-heading.low    { color: #6b7280; border-color: #6b7280; }
+    .flag-item {
+      border: 1px solid #e5e7eb; border-left: 4px solid #e5e7eb;
+      border-radius: 5px; padding: 0.55rem 0.7rem;
+      display: flex; flex-direction: column; gap: 0.18rem;
+    }
+    .flag-item.high   { border-left-color: #dc2626; background: #fff9f9; }
+    .flag-item.medium { border-left-color: #d97706; background: #fffbf0; }
+    .flag-item.low    { border-left-color: #6b7280; background: #f9fafb; }
+    .flag-item-matter  { font-size: 0.8rem; font-weight: 700; color: #1a1a2e; }
+    .flag-item-message { font-size: 0.76rem; color: #374151; }
+    .flag-item-meta    { font-size: 0.67rem; color: #9ca3af; }
+    .flag-item-actions { display: flex; gap: 0.3rem; margin-top: 0.25rem; }
+    #flag-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.22); z-index: 899;
+    }
+
+    /* ── Flag badge on kanban card ──────────────────────────────────────────── */
+    .kanban-flag-badge {
+      font-size: 0.63rem; padding: 1px 5px; border-radius: 3px;
+      font-weight: 700; background: #fee2e2; color: #dc2626;
+      border: 1px solid #fca5a5; white-space: nowrap; cursor: default;
+    }
+
+    /* ── Alert panel (slide from right) ────────────────────────────────────── */
+    #alert-panel {
+      position: fixed; top: 0; right: -440px; width: 420px; height: 100vh;
+      background: #fff; border-left: 1px solid #dde1e9;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.13); z-index: 900;
+      display: flex; flex-direction: column; transition: right 0.25s ease;
+      overflow: hidden;
+    }
+    #alert-panel.open { right: 0; }
+    .alert-panel-header {
+      display: flex; align-items: center; padding: 0.9rem 1rem;
+      border-bottom: 1px solid #dde1e9; background: #1a1a2e;
+      color: #fff; flex-shrink: 0;
+    }
+    .alert-panel-title { font-size: 0.92rem; font-weight: 700; flex: 1; }
+    .alert-panel-close {
+      background: none; border: none; color: rgba(255,255,255,0.7);
+      font-size: 1rem; cursor: pointer; padding: 0.1rem 0.4rem;
+      border-radius: 3px; line-height: 1;
+    }
+    .alert-panel-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .alert-panel-body {
+      flex: 1; overflow-y: auto; padding: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .alert-panel-empty {
+      color: #9ca3af; font-size: 0.85rem; text-align: center; padding: 2rem;
+    }
+    .alert-group-heading {
+      font-size: 0.71rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 0.4rem 0; border-bottom: 2px solid;
+      margin-top: 0.5rem;
+    }
+    .alert-group-heading.overdue  { color: #dc2626; border-color: #dc2626; }
+    .alert-group-heading.urgent   { color: #ea580c; border-color: #ea580c; }
+    .alert-group-heading.upcoming { color: #d97706; border-color: #d97706; }
+    .alert-item {
+      border: 1px solid #e5e7eb; border-left: 4px solid #e5e7eb;
+      border-radius: 5px; padding: 0.55rem 0.7rem;
+      display: flex; flex-direction: column; gap: 0.18rem;
+    }
+    .alert-item.overdue  { border-left-color: #dc2626; background: #fff9f9; }
+    .alert-item.urgent   { border-left-color: #ea580c; background: #fff8f5; }
+    .alert-item.upcoming { border-left-color: #d97706; background: #fffbf0; }
+    .alert-item-matter   { font-size: 0.8rem; font-weight: 700; color: #1a1a2e; }
+    .alert-item-label    { font-size: 0.76rem; color: #374151; }
+    .alert-item-due      { font-size: 0.71rem; color: #6b7280; }
+    .alert-item-statute  { font-size: 0.67rem; color: #9ca3af; }
+    .alert-item-actions  { display: flex; gap: 0.3rem; margin-top: 0.25rem; }
+    #alert-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.22); z-index: 899;
+    }
+
+    /* ── Alert dot in card summary ──────────────────────────────────────────── */
+    .alert-severity-dot { font-size: 0.55rem; flex-shrink: 0; line-height: 1; }
+    .alert-severity-dot.overdue  { color: #dc2626; }
+    .alert-severity-dot.urgent   { color: #ea580c; }
+    .alert-severity-dot.upcoming { color: #d97706; }
+
+    /* ── Alert chips in card detail ─────────────────────────────────────────── */
+    .kanban-alert-chips {
+      display: flex; flex-wrap: wrap; gap: 0.22rem;
+      margin-top: 0.3rem; margin-bottom: 0.1rem;
+    }
+    .kanban-alert-chip {
+      font-size: 0.63rem; padding: 2px 6px; border-radius: 3px;
+      font-weight: 600; white-space: nowrap; cursor: default;
+    }
+    .kanban-alert-chip.overdue  { background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; }
+    .kanban-alert-chip.urgent   { background:#ffedd5; color:#c2410c; border:1px solid #fdba74; }
+    .kanban-alert-chip.upcoming { background:#fef9c3; color:#a16207; border:1px solid #fde047; }
+
+    #main-content {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Views ──────────────────────────────────────────────────────────────── */
+
+    #view-kanban {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #view-matters {
+      flex: 1;
+      overflow: auto;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      align-content: start;
+    }
+
+    /* ── Kanban toolbar ─────────────────────────────────────────────────────── */
+
+    .kanban-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.65rem 1rem;
+      background: #fff;
+      border-bottom: 1px solid #dde1e9;
+      flex-shrink: 0;
+    }
+    .kanban-toolbar-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      flex-shrink: 0;
+    }
+    .kanban-search {
+      flex: 1;
+      max-width: 260px;
+      font-size: 0.82rem;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      outline: none;
+    }
+    .kanban-search:focus { border-color: #6366f1; }
+    .kanban-filter {
+      font-size: 0.8rem;
+      padding: 0.3rem 0.55rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      background: #fff;
+      color: #374151;
+    }
+    .kanban-refresh-btn {
+      padding: 0.3rem 0.65rem;
+      font-size: 0.8rem;
+      border: 1px solid #dde1e9;
+      border-radius: 5px;
+      background: #fff;
+      cursor: pointer;
+      color: #374151;
+      transition: background 0.12s;
+      margin-left: auto;
+    }
+    .kanban-refresh-btn:hover { background: #f0f4ff; }
+
+    /* ── Kanban board ───────────────────────────────────────────────────────── */
+
+    #kanban-board {
+      flex: 1;
+      display: flex;
+      overflow-x: auto;
+      gap: 0.65rem;
+      padding: 0.85rem 1rem;
+      background: #f5f7fa;
+      align-items: flex-start;
+    }
+
+    .kanban-col {
+      width: 280px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .kanban-col-header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.73rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #374151;
+      background: #fff;
+      border-radius: 6px 6px 0 0;
+      border: 1px solid #dde1e9;
+      border-bottom: none;
+      flex-shrink: 0;
+    }
+    .kanban-col-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .kanban-col-count {
+      margin-left: auto;
+      font-size: 0.7rem;
+      background: #f3f4f6;
+      color: #6b7280;
+      border-radius: 10px;
+      padding: 1px 6px;
+      font-weight: 600;
+    }
+    .kanban-col-body {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #dde1e9;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      background: #f8f9fb;
+      padding: 0.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-height: 80px;
+      max-height: calc(100vh - 160px);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .kanban-col-body.drag-over {
+      background: #eef2ff;
+      border-color: #a5b4fc;
+    }
+    .kanban-col-empty {
+      padding: 0.75rem 0.5rem;
+      font-size: 0.74rem;
+      color: #c4cad5;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* ── Kanban card ────────────────────────────────────────────────────────── */
+
+    .kanban-card {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #6366f1;
+      padding: 0.6rem 0.7rem 0.45rem;
+      cursor: grab;
+      transition: box-shadow 0.15s;
+      user-select: none;
+    }
+    .kanban-card:hover  { box-shadow: 0 3px 10px rgba(0,0,0,0.11); }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card.overdue { border-left-color: #dc2626; background: #fff9f9; }
+
+    .kanban-card-name {
+      font-weight: 700;
+      color: #1a1a2e;
+      font-size: 0.83rem;
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .kanban-card-type {
+      font-size: 0.69rem;
+      color: #9ca3af;
+      margin-bottom: 0.3rem;
+    }
+    .kanban-card-hearing {
+      font-size: 0.72rem;
+      color: #6b7280;
+      margin-bottom: 0.3rem;
+    }
+    .kanban-card-hearing.overdue { color: #b91c1c; font-weight: 600; }
+
+    .kanban-card-tasks {
+      margin: 0.3rem 0 0.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.18rem;
+    }
+    .kanban-task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.3rem;
+      font-size: 0.71rem;
+      color: #6b7280;
+      line-height: 1.35;
+    }
+    .kanban-task-item::before { content: '·'; flex-shrink: 0; color: #9ca3af; }
+    .kanban-task-more {
+      font-size: 0.68rem;
+      color: #9ca3af;
+      font-style: italic;
+      margin-top: 0.1rem;
+    }
+
+    .kanban-card-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.4rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid #f0f2f5;
+    }
+    .kanban-open-count {
+      font-size: 0.68rem;
+      color: #9ca3af;
+      flex: 1;
+    }
+    .kanban-btn {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid #dde1e9;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      color: #374151;
+      font-weight: 500;
+      transition: background 0.1s;
+      white-space: nowrap;
+    }
+    .kanban-btn:hover { background: #f0f4ff; border-color: #a5b4fc; }
+    .kanban-btn.primary {
+      background: #1a1a2e;
+      border-color: #1a1a2e;
+      color: #fff;
+    }
+    .kanban-btn.primary:hover { background: #2d2d4e; }
+
+    /* ── Board tabs ─────────────────────────────────────────────────────────── */
+
+    .board-tabs { display: flex; gap: 0.25rem; flex-shrink: 0; }
+    .board-tab {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.28rem 0.8rem;
+      border: 1px solid #dde1e9;
+      border-radius: 5px;
+      background: #fff;
+      color: #6b7280;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s;
+    }
+    .board-tab:hover { background: #f0f4ff; color: #1a1a2e; }
+    .board-tab.active { background: #1a1a2e; border-color: #1a1a2e; color: #fff; }
+
+    /* ── Card collapse / expand ──────────────────────────────────────────────── */
+
+    .kanban-card-summary {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .kanban-card-summary .kanban-card-name {
+      flex: 1;
+      min-width: 0;
+      margin-bottom: 0;
+    }
+    .kanban-card-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 0.65rem;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .kanban-card-toggle:hover { color: #6b7280; }
+    .kanban-card-detail {
+      overflow: hidden;
+      max-height: 600px;
+      padding-top: 0.2rem;
+      transition: max-height 0.25s ease, opacity 0.2s;
+      opacity: 1;
+    }
+    .kanban-card.collapsed .kanban-card-detail {
+      max-height: 0;
+      padding-top: 0;
+      opacity: 0;
+    }
+
+    /* ── Warning badge ───────────────────────────────────────────────────────── */
+
+    .kanban-warning-badge {
+      font-size: 0.65rem;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-weight: 700;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* ── Column collapse toggle ──────────────────────────────────────────────── */
+
+    .kanban-col-toggle {
+      margin-left: 0.3rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #9ca3af;
+      font-size: 0.65rem;
+      padding: 0;
+      line-height: 1;
+    }
+    .kanban-col-toggle:hover { color: #374151; }
+
+    /* ── Hearing inline form ────────────────────────────────────────────────── */
+
+    .kanban-hearing-form {
+      margin-top: 0.4rem;
+      padding-top: 0.4rem;
+      border-top: 1px solid #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .kanban-hearing-input {
+      font-size: 0.74rem;
+      padding: 0.25rem 0.45rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      width: 100%;
+      outline: none;
+    }
+    .kanban-hearing-input:focus { border-color: #6366f1; }
+    .kanban-hearing-actions {
+      display: flex;
+      gap: 0.3rem;
+      justify-content: flex-end;
+    }
+
+    /* ── Skeleton loading ───────────────────────────────────────────────────── */
+
+    .kanban-skeleton-card {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      border-left: 4px solid #e5e7eb;
+      padding: 0.6rem 0.7rem;
+      animation: kanban-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes kanban-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.55; }
+    }
+    .sk-line {
+      height: 9px;
+      background: #f0f2f5;
+      border-radius: 3px;
+      margin-bottom: 7px;
+    }
+    .sk-line.short  { width: 55%; }
+    .sk-line.medium { width: 80%; }
+    .sk-line.full   { width: 100%; }
+
+    /* ── Matters list panel (from old #matters-panel) ───────────────────────── */
+
+    #matters-panel {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #dde1e9;
+      overflow: hidden;
+      align-self: start;
+    }
+
+    #matters-panel h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #dde1e9;
+    }
+
+    #matters-list {
+      list-style: none;
+      max-height: calc(100vh - 140px);
+      overflow-y: auto;
+    }
+
+    #matters-list li {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 0.9rem;
+      transition: background 0.15s;
+    }
+
+    #matters-list li:hover { background: #f0f4ff; }
+    #matters-list li.active { background: #e8eeff; font-weight: 600; }
+
+    #matters-list .matter-name { color: #1a1a2e; }
+    #matters-list .matter-sub { font-size: 0.75rem; color: #9ca3af; margin-top: 2px; }
+
+    /* --- Detail panel --- */
+    #detail-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 0;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #dde1e9;
+      overflow: hidden;
+    }
+
+    .card h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid #dde1e9;
+    }
+
+    .card-body { padding: 1rem; }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 0.4rem 1rem;
+      font-size: 0.875rem;
+    }
+
+    .kv-grid .key { color: #6b7280; }
+    .kv-grid .val { color: #1a1a2e; font-weight: 500; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      background: #f8f9fb;
+      color: #6b7280;
+      font-weight: 600;
+      border-bottom: 1px solid #dde1e9;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid #f0f2f5;
+      color: #374151;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    #placeholder {
+      text-align: center;
+      color: #9ca3af;
+      padding: 4rem 1rem;
+      font-size: 0.95rem;
+    }
+
+    .error { color: #dc2626; font-size: 0.875rem; padding: 0.75rem; }
+    .loading { color: #6b7280; font-size: 0.875rem; padding: 0.75rem; }
+
+    /* --- Forms section --- */
+
+    .forms-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Petition type toggle */
+    .petition-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .petition-toggle label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      padding: 0.35rem 0.75rem;
+      border-radius: 5px;
+      border: 1px solid #dde1e9;
+      background: #f8f9fb;
+      color: #374151;
+      font-weight: 500;
+      transition: background 0.12s, border-color 0.12s;
+      user-select: none;
+    }
+
+    .petition-toggle input[type="radio"] { display: none; }
+
+    .petition-toggle input[type="radio"]:checked + span {
+      font-weight: 700;
+    }
+
+    .petition-toggle label:has(input:checked) {
+      background: #1a1a2e;
+      border-color: #1a1a2e;
+      color: #fff;
+    }
+
+    /* Package button */
+    .package-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+      align-self: flex-start;
+    }
+    .package-btn:hover { background: #2d2d4e; }
+    .package-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+    @keyframes ma-spin { to { transform: rotate(360deg); } }
+    .package-btn .spinner,
+    .form-btn    .spinner {
+      display: inline-block; width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: ma-spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    .form-btn .spinner {
+      border-color: rgba(99,102,241,0.3);
+      border-top-color: #6366f1;
+    }
+
+    /* Individual forms collapsible */
+    .individual-forms {
+      border: 1px solid #dde1e9;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .individual-forms summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      cursor: pointer;
+      background: #f8f9fb;
+      user-select: none;
+    }
+
+    .individual-forms summary::-webkit-details-marker { display: none; }
+
+    .individual-forms summary::before {
+      content: '▶';
+      font-size: 0.6rem;
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+
+    .individual-forms[open] summary::before { transform: rotate(90deg); }
+
+    .form-btn-list {
+      padding: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .form-btn {
+      display: inline-flex;
+      align-items: center;
+      background: #fff;
+      color: #1a1a2e;
+      border: 1px solid #dde1e9;
+      border-radius: 5px;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .form-btn:hover { background: #f0f4ff; border-color: #a5b4fc; }
+    .form-btn:disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+    .form-btn.on-request {
+      color: #6b7280;
+      font-weight: 500;
+      border-style: dashed;
+    }
+
+    /* --- Will beneficiary checklist --- */
+    .beneficiary-panel {
+      border: 1px solid #c7d2fe;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #f5f7ff;
+    }
+
+    .beneficiary-panel summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4338ca;
+      cursor: pointer;
+      background: #eef2ff;
+      user-select: none;
+    }
+    .beneficiary-panel summary::-webkit-details-marker { display: none; }
+    .beneficiary-panel summary::before {
+      content: '▶';
+      font-size: 0.6rem;
+      transition: transform 0.15s;
+      display: inline-block;
+    }
+    .beneficiary-panel[open] summary::before { transform: rotate(90deg); }
+
+    .beneficiary-list {
+      padding: 0.6rem 0.85rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .beneficiary-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      padding: 0.2rem 0;
+    }
+
+    .beneficiary-item input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: #4338ca;
+      flex-shrink: 0;
+    }
+
+    .beneficiary-item label {
+      cursor: pointer;
+      color: #1a1a2e;
+    }
+
+    .beneficiary-item label .rel-badge {
+      margin-left: 0.35rem;
+      font-size: 0.72rem;
+      color: #6b7280;
+    }
+
+    .beneficiary-item.is-heir label {
+      font-weight: 600;
+    }
+
+    .beneficiary-item .heir-tag {
+      font-size: 0.68rem;
+      background: #c7d2fe;
+      color: #3730a3;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .beneficiary-loading {
+      font-size: 0.8rem;
+      color: #6b7280;
+      padding: 0.5rem 0;
+    }
+
+    /* --- State selector (Rhode Island / Massachusetts) --- */
+
+    .state-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .state-tab {
+      padding: 0.35rem 1rem;
+      border-radius: 5px;
+      border: 1px solid #dde1e9;
+      background: #f8f9fb;
+      color: #374151;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    .state-tab.active {
+      background: #1a1a2e;
+      border-color: #1a1a2e;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* --- MA auto-populated data rows --- */
+
+    .ma-auto-panel {
+      border: 1px solid #dde1e9;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .dv-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .dv-row:last-child { border-bottom: none; }
+    .dv-label { color: #6b7280; }
+    .dv-value { color: #1a1a2e; font-weight: 500; display: flex; align-items: center; gap: 0.4rem; }
+
+    .dv-badge {
+      font-size: 0.68rem;
+      background: #d1fae5;
+      color: #065f46;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* --- MA toggle rows --- */
+
+    .ma-toggle-section {
+      border: 1px solid #dde1e9;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .ma-toggle-section-header {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      padding: 0.5rem 0.85rem;
+      background: #f8f9fb;
+      border-bottom: 1px solid #dde1e9;
+    }
+
+    .ma-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.85rem;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #f0f2f5;
+      gap: 1rem;
+    }
+
+    .ma-toggle-row:last-of-type { border-bottom: none; }
+    .toggle-label { color: #1a1a2e; flex: 1; }
+
+    .pill-group {
+      display: flex;
+      gap: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    .pill-btn {
+      -webkit-appearance: none;
+      appearance: none;
+      padding: 0.2rem 0.65rem;
+      border-radius: 20px;
+      border: 2px solid #dde1e9;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      line-height: 1.4;
+    }
+
+    .pill-btn.yes-active {
+      background: #1a1a2e;
+      border-color: #1a1a2e;
+      color: #fff;
+    }
+
+    .pill-btn.no-active {
+      background: rgba(192, 57, 43, 0.85);
+      border-color: #c0392b;
+      color: #fff;
+    }
+
+    /* --- Warning banners --- */
+
+    .warning-banner {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-left: 3px solid #f59e0b;
+      border-radius: 4px;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.8rem;
+      color: #92400e;
+      margin: 0 0.85rem 0.35rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .warning-banner-text { flex: 1; }
+
+    /* --- Form set display --- */
+
+    .form-set-section {
+      border: 1px solid #dde1e9;
+      border-radius: 6px;
+      padding: 0.75rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-set-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+    }
+
+    .form-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .form-chip {
+      padding: 0.3rem 0.65rem;
+      border-radius: 4px;
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .form-chip-number {
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .form-chip-name {
+      font-size: 0.68rem;
+      font-weight: 400;
+      opacity: 0.75;
+      line-height: 1.3;
+    }
+
+    .form-chip.required {
+      background: #1a1a2e;
+      color: #fff;
+      border: 1px solid #1a1a2e;
+    }
+
+    .form-chip.conditional {
+      background: #fff;
+      color: #1a1a2e;
+      border: 1px solid #1a1a2e;
+    }
+
+    .form-chip.court-issued {
+      background: #fff;
+      color: #6b7280;
+      border: 1px dashed #9ca3af;
+      font-style: italic;
+    }
+
+    .form-chip.empty {
+      color: #9ca3af;
+      font-style: italic;
+      background: none;
+      border: none;
+      font-weight: 400;
+      font-size: 0.8rem;
+    }
+
+    .ma-fee {
+      font-size: 0.875rem;
+      color: #6b7280;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid #f0f2f5;
+    }
+
+    .ma-fee strong { color: #1a1a2e; }
+
+    .late-limited-warning {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 3px solid #f97316;
+      border-radius: 4px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      color: #c2410c;
+    }
+
+    /* --- MA badges (interested parties panel) --- */
+
+    .ma-badge {
+      font-size: 0.68rem;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .ma-badge.heir    { background: #c7d2fe; color: #3730a3; }
+    .ma-badge.spouse  { background: #fce7f3; color: #9d174d; }
+    .ma-badge.stepchild { background: #f3f4f6; color: #6b7280; }
+    .ma-badge.minor   { background: #fef3c7; color: #92400e; }
+
+    /* --- DMA notice --- */
+    .ma-dma-notice {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 3px solid #3b82f6;
+      border-radius: 4px;
+      padding: 0.45rem 0.75rem;
+      font-size: 0.8rem;
+      color: #1e40af;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Administration tab ──────────────────────────────────────────────── */
+
+    .admin-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    /* Stage tracker */
+    .admin-stages {
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    .admin-stage-btn {
+      flex: 1;
+      padding: 0.4rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid #dde1e9;
+      background: #f8f9fb;
+      color: #6b7280;
+      cursor: pointer;
+      margin-left: -1px;
+      transition: background 0.12s;
+      white-space: nowrap;
+    }
+    .admin-stage-btn:first-child { border-radius: 5px 0 0 5px; margin-left: 0; }
+    .admin-stage-btn:last-child  { border-radius: 0 5px 5px 0; }
+    .admin-stage-btn.active {
+      background: #1a1a2e;
+      color: #fff;
+      border-color: #1a1a2e;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* Key dates panel */
+    .admin-dates-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 1rem;
+    }
+    .admin-date-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .admin-date-label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      font-weight: 500;
+    }
+    .admin-date-input {
+      font-size: 0.82rem;
+      padding: 4px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      width: 100%;
+    }
+
+    /* Deadlines table */
+    .admin-deadlines {
+      border: 1px solid #dde1e9;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .admin-deadlines-header {
+      padding: 0.5rem 0.85rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      background: #f8f9fb;
+      border-bottom: 1px solid #dde1e9;
+    }
+    .admin-deadline-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.5rem;
+      align-items: center;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.82rem;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .admin-deadline-row:last-child { border-bottom: none; }
+    .admin-deadline-label { color: #374151; }
+    .admin-deadline-date  { color: #1a1a2e; font-weight: 600; white-space: nowrap; }
+    .admin-deadline-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .admin-deadline-badge.overdue  { background: #fef2f2; color: #b91c1c; }
+    .admin-deadline-badge.urgent   { background: #fff7ed; color: #c2410c; }
+    .admin-deadline-badge.upcoming { background: #f0fdf4; color: #15803d; }
+    .admin-deadline-badge.future   { background: #f3f4f6; color: #6b7280; }
+    .admin-deadline-badge.na       { background: #f3f4f6; color: #9ca3af; font-style: italic; }
+    .admin-deadline-empty {
+      padding: 0.75rem 0.85rem;
+      font-size: 0.82rem;
+      color: #9ca3af;
+      font-style: italic;
+    }
+
+    /* Task checklist */
+    .admin-phase {
+      border: 1px solid #dde1e9;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .admin-phase summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      cursor: pointer;
+      background: #f8f9fb;
+      user-select: none;
+    }
+    .admin-phase summary::-webkit-details-marker { display: none; }
+    .admin-phase summary::before {
+      content: '▶';
+      font-size: 0.6rem;
+      transition: transform 0.15s;
+      display: inline-block;
+      margin-right: 0.4rem;
+    }
+    .admin-phase[open] summary::before { transform: rotate(90deg); }
+    .admin-phase-progress {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-left: auto;
+    }
+    .admin-task-list {
+      padding: 0.4rem 0;
+    }
+    .admin-task-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.83rem;
+      color: #374151;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .admin-task-item:hover { background: #f9fafb; }
+    .admin-task-item.done { color: #9ca3af; text-decoration: line-through; }
+    .admin-task-item input[type=checkbox] { flex-shrink: 0; cursor: pointer; }
+    .admin-deadline-tag {
+      font-size: 0.68rem;
+      background: #fef3c7;
+      color: #92400e;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 600;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* Letter generator */
+    .admin-letter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .admin-letter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.85rem;
+      font-size: 0.83rem;
+      border-bottom: 1px solid #f0f2f5;
+      gap: 0.75rem;
+    }
+    .admin-letter-row:last-child { border-bottom: none; }
+    .admin-letter-info { flex: 1; }
+    .admin-letter-title { font-weight: 600; color: #1a1a2e; }
+    .admin-letter-desc  { font-size: 0.74rem; color: #6b7280; margin-top: 1px; }
+    .admin-letter-btn {
+      font-size: 0.78rem;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid #dde1e9;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s;
+    }
+    .admin-letter-btn:hover { background: #f0f4ff; border-color: #a5b4fc; }
+    .admin-letter-btn:disabled { background: #f3f4f6; color: #9ca3af; cursor: not-allowed; }
+
+    /* Letter modal */
+    .admin-letter-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .admin-letter-modal {
+      background: #fff;
+      border-radius: 8px;
+      width: 700px;
+      max-width: 95vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .admin-letter-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #dde1e9;
+    }
+    .admin-letter-modal-title { font-weight: 700; font-size: 0.95rem; }
+    .admin-letter-modal-close {
+      border: none; background: none; cursor: pointer;
+      font-size: 1.2rem; color: #6b7280; line-height: 1;
+    }
+    .admin-letter-modal-body { flex: 1; overflow-y: auto; padding: 1rem; }
+    .admin-letter-textarea {
+      width: 100%;
+      min-height: 400px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    .admin-letter-modal-footer {
+      padding: 0.65rem 1rem;
+      border-top: 1px solid #dde1e9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    .admin-copy-btn {
+      padding: 0.4rem 1rem;
+      border: 1px solid #dde1e9;
+      border-radius: 4px;
+      background: #1a1a2e;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .admin-section-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6b7280;
+      margin-bottom: 0.4rem;
+    }
+
+    /* ── Matter Type Selector Panel ─────────────────────────────────────────── */
+
+    .matter-type-panel {
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .matter-type-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.84rem;
+    }
+    .matter-type-label {
+      color: #6b7280;
+      font-weight: 500;
+      min-width: 90px;
+      flex-shrink: 0;
+    }
+    .matter-type-pills {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+    }
+    .matter-type-pill {
+      padding: 0.18rem 0.65rem;
+      border-radius: 20px;
+      border: 2px solid #dde1e9;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .matter-type-pill:hover { border-color: #9ca3af; }
+    .matter-type-pill.active {
+      background: #1a1a2e;
+      border-color: #1a1a2e;
+      color: #fff;
+    }
+    .matter-type-pill.active-trust {
+      background: #5b21b6;
+      border-color: #5b21b6;
+      color: #fff;
+    }
+    .matter-type-source-badge {
+      font-size: 0.67rem;
+      background: #d1fae5;
+      color: #065f46;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+    .matter-type-source-badge.override {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .matter-type-trust-warning {
+      background: #ede9fe;
+      border: 1px solid #c4b5fd;
+      border-left: 3px solid #7c3aed;
+      border-radius: 4px;
+      padding: 0.4rem 0.65rem;
+      font-size: 0.8rem;
+      color: #5b21b6;
+      margin-top: 0.25rem;
+    }
+    /* Task proceeding-type badges */
+    .task-pt-badge {
+      font-size: 0.64rem;
+      border-radius: 3px;
+      padding: 1px 4px;
+      margin-left: 4px;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+    .task-pt-badge.trust    { background: #ede9fe; color: #5b21b6; }
+    .task-pt-badge.probate  { background: #dcfce7; color: #166534; }
+    .task-pt-badge.testate  { background: #e0f2fe; color: #0369a1; }
+    .task-pt-badge.intestate { background: #fce7f3; color: #9d174d; }
+  </style>
+</head>
+<body>
+  <div id="shell">
+    <nav id="sidebar">
+      <div class="sidebar-title">
+        Fabisch Law
+        <button class="sidebar-bell" id="sidebar-bell" title="Deadline alerts">
+          🔔<span class="sidebar-bell-badge" id="sidebar-bell-badge">0</span>
+        </button>
+        <button class="sidebar-flag" id="sidebar-flag" title="Document flags">
+          🚩<span class="sidebar-flag-badge" id="sidebar-flag-badge">0</span>
+        </button>
+      </div>
+
+      <!-- AI Features collapsible panel -->
+      <div class="ai-features-section" id="ai-features-section">
+        <div class="ai-features-header" id="ai-features-toggle">
+          <span class="ai-features-label">AI Features</span>
+          <span class="ai-features-chevron">▼</span>
+        </div>
+        <div class="ai-features-body">
+          <!-- Row: Deadline Alerts -->
+          <div class="ai-feature-row">
+            <span class="ai-feature-name">Deadline Alerts</span>
+            <label class="ai-toggle" title="Enable/disable deadline alerts">
+              <input type="checkbox" id="ai-toggle-alerts" />
+              <span class="ai-toggle-track"><span class="ai-toggle-thumb"></span></span>
+            </label>
+            <button class="ai-run-btn" id="ai-run-alerts" title="Run now">↻ Run</button>
+          </div>
+          <!-- Row: Document Scanner -->
+          <div class="ai-feature-row">
+            <span class="ai-feature-name">Doc Scanner</span>
+            <label class="ai-toggle" title="Enable/disable document scanner">
+              <input type="checkbox" id="ai-toggle-scanner" />
+              <span class="ai-toggle-track"><span class="ai-toggle-thumb"></span></span>
+            </label>
+            <button class="ai-run-btn" id="ai-run-scanner" title="Run now">↻ Run</button>
+          </div>
+          <!-- Row: AI Extraction -->
+          <div class="ai-feature-row">
+            <span class="ai-feature-name">
+              AI Extraction
+              <small id="ai-extraction-note"></small>
+            </span>
+            <label class="ai-toggle" title="Enable/disable AI document extraction">
+              <input type="checkbox" id="ai-toggle-extraction" />
+              <span class="ai-toggle-track"><span class="ai-toggle-thumb"></span></span>
+            </label>
+          </div>
+          <div class="sidebar-scan-status" id="sidebar-scan-status">Last scan: —</div>
+        </div>
+      </div>
+
+      <div id="sidebar-nav-items">
+        <a class="nav-item active" data-view="kanban-admin">
+          <span class="nav-icon">&#9783;</span> Admin Board
+        </a>
+        <a class="nav-item nav-sub" data-view="kanban-guardianship">
+          <span class="nav-icon">&#10149;</span> Guardianship
+        </a>
+        <a class="nav-item" data-view="kanban-planning">
+          <span class="nav-icon">&#9998;</span> Planning Board
+        </a>
+        <a class="nav-item" data-view="matters">
+          <span class="nav-icon">&#9776;</span> Matters
+        </a>
+        <a class="nav-item" data-view="audit-log" style="margin-top:auto">
+          <span class="nav-icon">&#128196;</span> Audit Log
+        </a>
+      </div>
+
+      <!-- Sidebar user panel -->
+      <div id="sidebar-user-panel" style="border-top:1px solid rgba(255,255,255,0.1);padding:0.75rem 1rem 0.6rem;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:0.5rem">
+          <div style="font-size:1.1rem;flex-shrink:0">&#128100;</div>
+          <div id="sidebar-user" style="min-width:0;flex:1">
+            <div style="font-size:0.79rem;color:rgba(255,255,255,0.35)">Loading…</div>
+          </div>
+        </div>
+        <button id="sidebar-signout" style="display:none;margin-top:0.45rem;width:100%;padding:0.3rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:5px;color:rgba(255,255,255,0.6);font-size:0.75rem;cursor:pointer" onmouseover="this.style.background='rgba(255,255,255,0.14)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">Sign Out</button>
+      </div>
+    </nav>
+
+    <div id="main-content">
+      <!-- Kanban view -->
+      <div id="view-kanban">
+        <div class="kanban-toolbar">
+          <div class="board-tabs">
+            <button class="board-tab active" id="tab-admin">Admin</button>
+            <button class="board-tab" id="tab-planning">Planning</button>
+          </div>
+          <input type="text" class="kanban-search" id="kanban-search" placeholder="Search matters…" />
+          <select class="kanban-filter" id="kanban-state-filter">
+            <option value="ALL">All states</option>
+            <option value="RI">Rhode Island</option>
+            <option value="MA">Massachusetts</option>
+          </select>
+          <select class="kanban-filter" id="kanban-category-filter">
+            <option value="ALL">All types</option>
+            <option value="probate">Probate</option>
+            <option value="trust">Trust</option>
+            <option value="guardianship">Guardianship</option>
+            <option value="other">Other</option>
+          </select>
+          <button class="kanban-btn" id="kanban-collapse-all" style="flex-shrink:0">Collapse All</button>
+          <button class="kanban-refresh-btn" id="kanban-refresh">&#8635; Refresh</button>
+        </div>
+        <div id="kanban-board">
+          <!-- Columns rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Matters view -->
+      <div id="view-matters" style="display:none">
+        <div id="matters-panel">
+          <h2>Matters</h2>
+          <ul id="matters-list">
+            <li class="loading">Loading…</li>
+          </ul>
+        </div>
+
+        <div id="detail-panel">
+          <div id="placeholder">Select a matter to view its details.</div>
+        </div>
+      </div>
+
+      <!-- Audit Log view -->
+      <div id="view-audit-log" style="display:none;padding:1.5rem 2rem;overflow-y:auto;width:100%">
+        <div style="max-width:1100px;margin:0 auto">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <h2 style="font-size:1.1rem;font-weight:700;color:#1a1a2e">Audit Log</h2>
+            <button onclick="exportAuditCsv()" style="padding:0.4rem 0.9rem;background:#1a1a2e;color:#fff;border:none;border-radius:6px;font-size:0.8rem;cursor:pointer">Export CSV</button>
+          </div>
+          <!-- Filters -->
+          <div style="display:flex;gap:0.6rem;margin-bottom:1rem;flex-wrap:wrap">
+            <select id="audit-filter-action" style="padding:0.35rem 0.6rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.8rem;color:#374151" onchange="auditLogFilters.action=this.value;loadAuditLog()">
+              <option value="">All actions</option>
+              <option value="LOGIN">LOGIN</option>
+              <option value="LOGOUT">LOGOUT</option>
+              <option value="FORMS_GENERATED">FORMS_GENERATED</option>
+              <option value="STAGE_CHANGED">STAGE_CHANGED</option>
+              <option value="TASK_UPDATED">TASK_UPDATED</option>
+              <option value="MATTER_TYPE_CHANGED">MATTER_TYPE_CHANGED</option>
+              <option value="LETTER_GENERATED">LETTER_GENERATED</option>
+              <option value="FLAG_RESOLVED">FLAG_RESOLVED</option>
+              <option value="USER_CREATED">USER_CREATED</option>
+            </select>
+            <input type="text" id="audit-filter-matter" placeholder="Filter by matter ID…" style="padding:0.35rem 0.6rem;border:1px solid #d1d5db;border-radius:5px;font-size:0.8rem;width:200px" oninput="auditLogFilters.matterId=this.value" onkeydown="if(event.key==='Enter')loadAuditLog()" />
+            <button onclick="loadAuditLog()" style="padding:0.35rem 0.75rem;background:#f3f4f6;border:1px solid #d1d5db;border-radius:5px;font-size:0.8rem;cursor:pointer">Apply</button>
+          </div>
+          <div id="audit-log-container" style="background:#fff;border-radius:8px;border:1px solid #e5e7eb;padding:1rem">
+            <div style="color:#9ca3af;font-size:0.85rem">Select "Audit Log" to load events.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert panel (slide in from right) -->
+  <div id="alert-panel">
+    <div class="alert-panel-header">
+      <span class="alert-panel-title">🔔 Deadline Alerts</span>
+      <button class="alert-panel-close" id="alert-panel-close">✕</button>
+    </div>
+    <div class="alert-panel-body" id="alert-panel-body">
+      <div class="alert-panel-empty">Loading alerts…</div>
+    </div>
+  </div>
+  <div id="alert-overlay"></div>
+
+  <!-- Flags panel (slide in from right) -->
+  <div id="flag-panel">
+    <div class="flag-panel-header">
+      <span class="flag-panel-title">🚩 Document Flags</span>
+      <button class="flag-panel-close" id="flag-panel-close">✕</button>
+    </div>
+    <div class="flag-panel-body" id="flag-panel-body">
+      <div class="flag-panel-empty">Loading flags…</div>
+    </div>
+  </div>
+  <div id="flag-overlay"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

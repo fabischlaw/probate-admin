@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup — Fabisch Law Probate Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; color: #1a1a2e;
+    }
+    .card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      padding: 2.5rem 2.25rem 2rem;
+      width: 100%; max-width: 420px;
+    }
+    .logo { text-align: center; margin-bottom: 1.5rem; }
+    .logo .firm { font-size: 1.2rem; font-weight: 700; color: #1a1a2e; }
+    .logo .sub  { font-size: 0.78rem; color: #6b7280; margin-top: 0.2rem; }
+    .step-indicator {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.3rem; margin-bottom: 1.75rem;
+    }
+    .step-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #d1d5db; transition: background 0.2s;
+    }
+    .step-dot.active { background: #1a1a2e; }
+    .step-dot.done   { background: #6366f1; }
+    h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .step-sub { font-size: 0.82rem; color: #6b7280; margin-bottom: 1.25rem; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .form-group { margin-bottom: 0.9rem; }
+    label { display: block; font-size: 0.79rem; font-weight: 600; color: #374151; margin-bottom: 0.3rem; }
+    input[type="text"], input[type="email"], input[type="password"], select {
+      width: 100%; padding: 0.58rem 0.7rem;
+      border: 1.5px solid #d1d5db; border-radius: 7px;
+      font-size: 0.88rem; color: #1a1a2e; outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus { border-color: #4f46e5; }
+    .pw-strength { height: 3px; border-radius: 2px; margin-top: 0.3rem; transition: all 0.2s; background: #e5e7eb; }
+    .pw-strength.weak   { background: #ef4444; width: 33%; }
+    .pw-strength.medium { background: #f59e0b; width: 66%; }
+    .pw-strength.strong { background: #22c55e; width: 100%; }
+    .pw-hint { font-size: 0.72rem; color: #9ca3af; margin-top: 0.2rem; }
+    .btn-primary {
+      width: 100%; padding: 0.68rem;
+      background: #1a1a2e; color: #fff; border: none;
+      border-radius: 7px; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: background 0.15s; margin-top: 0.5rem;
+    }
+    .btn-primary:hover:not(:disabled) { background: #2d2d4e; }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .btn-secondary {
+      width: 100%; padding: 0.68rem;
+      background: transparent; color: #6b7280; border: 1.5px solid #d1d5db;
+      border-radius: 7px; font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s; margin-top: 0.5rem;
+    }
+    .btn-secondary:hover { border-color: #9ca3af; color: #374151; }
+    .error-msg {
+      background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626;
+      border-radius: 6px; padding: 0.55rem 0.7rem; font-size: 0.79rem;
+      margin-bottom: 0.9rem; display: none;
+    }
+    .error-msg.visible { display: block; }
+    .team-member {
+      border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 0.85rem; margin-bottom: 0.75rem;
+    }
+    .team-member-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.6rem;
+    }
+    .team-member-label { font-size: 0.79rem; font-weight: 600; color: #374151; }
+    .btn-remove {
+      background: none; border: none; cursor: pointer;
+      color: #9ca3af; font-size: 0.8rem; padding: 2px;
+    }
+    .btn-remove:hover { color: #ef4444; }
+    .btn-add-member {
+      width: 100%; padding: 0.55rem;
+      background: #f9fafb; border: 1.5px dashed #d1d5db;
+      border-radius: 7px; font-size: 0.82rem; color: #6b7280;
+      cursor: pointer; transition: all 0.15s; margin-bottom: 0.5rem;
+    }
+    .btn-add-member:hover { border-color: #9ca3af; color: #374151; background: #f3f4f6; }
+    .complete-icon { text-align: center; font-size: 2.5rem; margin-bottom: 1rem; }
+    .complete-text { text-align: center; color: #6b7280; font-size: 0.88rem; margin-bottom: 1.5rem; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="firm">Fabisch Law Offices</div>
+    <div class="sub">Probate Administration System</div>
+  </div>
+  <div class="step-indicator">
+    <div class="step-dot active" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-dot" id="dot-3"></div>
+    <div class="step-dot" id="dot-4"></div>
+  </div>
+
+  <!-- Step 1: Welcome -->
+  <div class="step active" id="step-1">
+    <h2>Welcome to Fabisch Law Probate Admin</h2>
+    <p class="step-sub">Let's get your system set up. This will take about two minutes.</p>
+    <button class="btn-primary" onclick="goToStep(2)">Get Started →</button>
+  </div>
+
+  <!-- Step 2: Create Attorney Account -->
+  <div class="step" id="step-2">
+    <h2>Create your attorney account</h2>
+    <p class="step-sub">This will be the primary administrator account.</p>
+    <div class="error-msg" id="step2-error"></div>
+    <div class="form-group">
+      <label for="setup-name">Full Name</label>
+      <input type="text" id="setup-name" value="Matthew Fabisch" />
+    </div>
+    <div class="form-group">
+      <label for="setup-email">Email</label>
+      <input type="email" id="setup-email" value="Fabisch@Fabischlaw.com" />
+    </div>
+    <div class="form-group">
+      <label for="setup-password">Password</label>
+      <input type="password" id="setup-password" oninput="checkStrength(this.value)" placeholder="Create a strong password" />
+      <div class="pw-strength" id="pw-strength"></div>
+      <div class="pw-hint" id="pw-hint">At least 8 characters recommended</div>
+    </div>
+    <div class="form-group">
+      <label for="setup-confirm">Confirm Password</label>
+      <input type="password" id="setup-confirm" placeholder="Re-enter password" />
+    </div>
+    <button class="btn-primary" onclick="submitStep2()">Create Account →</button>
+  </div>
+
+  <!-- Step 3: Team Members -->
+  <div class="step" id="step-3">
+    <h2>Add your team</h2>
+    <p class="step-sub">Invite paralegals or virtual assistants. You can skip this and add them later.</p>
+    <div id="team-members-list"></div>
+    <button class="btn-add-member" onclick="addTeamMember()">+ Add a team member</button>
+    <button class="btn-primary" onclick="submitStep3()">Continue →</button>
+    <button class="btn-secondary" onclick="goToStep(4)">Skip for Now</button>
+  </div>
+
+  <!-- Step 4: Complete -->
+  <div class="step" id="step-4">
+    <div class="complete-icon">✅</div>
+    <h2 style="text-align:center">Setup complete!</h2>
+    <p class="complete-text">Your system is ready. You'll be taken to the login page to sign in with your new account.</p>
+    <button class="btn-primary" onclick="window.location.href='/login'">Go to Sign In →</button>
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+  const teamMembers = [];
+
+  function goToStep(n) {
+    document.getElementById('step-' + currentStep).classList.remove('active');
+    document.getElementById('dot-' + currentStep).classList.remove('active');
+    document.getElementById('dot-' + currentStep).classList.add('done');
+    currentStep = n;
+    document.getElementById('step-' + n).classList.add('active');
+    document.getElementById('dot-' + n).classList.add('active');
+  }
+
+  function checkStrength(pw) {
+    const el   = document.getElementById('pw-strength');
+    const hint = document.getElementById('pw-hint');
+    el.className = 'pw-strength';
+    if (!pw) { hint.textContent = 'At least 8 characters recommended'; return; }
+    const strong = pw.length >= 12 && /[A-Z]/.test(pw) && /[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw);
+    const medium = pw.length >= 8  && (/[A-Z]/.test(pw) || /[0-9]/.test(pw));
+    if (strong)      { el.classList.add('strong'); hint.textContent = 'Strong password'; }
+    else if (medium) { el.classList.add('medium'); hint.textContent = 'Good — add symbols/numbers to strengthen'; }
+    else             { el.classList.add('weak');   hint.textContent = 'Too simple — use 8+ characters'; }
+  }
+
+  async function submitStep2() {
+    const name  = document.getElementById('setup-name').value.trim();
+    const email = document.getElementById('setup-email').value.trim();
+    const pw    = document.getElementById('setup-password').value;
+    const conf  = document.getElementById('setup-confirm').value;
+    const errEl = document.getElementById('step2-error');
+    errEl.classList.remove('visible');
+
+    if (!name || !email || !pw) { errEl.textContent = 'All fields are required.'; errEl.classList.add('visible'); return; }
+    if (pw !== conf)             { errEl.textContent = 'Passwords do not match.'; errEl.classList.add('visible'); return; }
+    if (pw.length < 8)           { errEl.textContent = 'Password must be at least 8 characters.'; errEl.classList.add('visible'); return; }
+
+    // Store for final submit
+    window._setupAttorney = { name, email, password: pw };
+    goToStep(3);
+  }
+
+  let memberCount = 0;
+  function addTeamMember() {
+    memberCount++;
+    const idx = memberCount;
+    const div = document.createElement('div');
+    div.className = 'team-member';
+    div.id = 'member-' + idx;
+    div.innerHTML = `
+      <div class="team-member-header">
+        <span class="team-member-label">Team Member ${idx}</span>
+        <button class="btn-remove" onclick="document.getElementById('member-${idx}').remove()">✕</button>
+      </div>
+      <div class="form-group" style="margin-bottom:0.5rem">
+        <input type="text" placeholder="Full name" class="member-name" />
+      </div>
+      <div class="form-group" style="margin-bottom:0.5rem">
+        <input type="email" placeholder="Email address" class="member-email" />
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <select class="member-role">
+          <option value="paralegal">Paralegal</option>
+          <option value="firm_admin">Firm Admin</option>
+          <option value="va">Virtual Assistant</option>
+        </select>
+      </div>
+    `;
+    document.getElementById('team-members-list').appendChild(div);
+  }
+
+  async function submitStep3() {
+    const members = [];
+    document.querySelectorAll('.team-member').forEach(el => {
+      const name  = el.querySelector('.member-name')?.value.trim();
+      const email = el.querySelector('.member-email')?.value.trim();
+      const role  = el.querySelector('.member-role')?.value;
+      if (name && email) members.push({ name, email, role });
+    });
+
+    try {
+      const body = { ...window._setupAttorney, teamMembers: members };
+      const res  = await fetch('/api/auth/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        alert('Setup error: ' + (d.error || 'Unknown error'));
+        return;
+      }
+      goToStep(4);
+    } catch (err) {
+      alert('Network error: ' + err.message);
+    }
+  }
+</script>
+</body>
+</html>

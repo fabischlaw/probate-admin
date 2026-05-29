@@ -1,0 +1,325 @@
+{
+  "id": "MPC-480",
+  "url": "https://courtforms.jud.state.ma.us/publicforms/PFC0083",
+  "title": "Affidavit of Witness to Will (MPC 480)",
+  "fieldCount": 26,
+  "fields": [
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "HTTPSubmitButton1xfa[0].form[0].form1[0].pageSet[0]Page1_7",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "ResetButton1xfa[0].form[0].form1[0].pageSet[0]Page1_8",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DocketNo_5",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Ln_7",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Fn_8",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Mn_9",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DateTimeField3_10",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "id": null,
+      "name": "DropDownList1_11",
+      "placeholder": null,
+      "label": null,
+      "className": null,
+      "options": [
+        {
+          "value": "",
+          "text": ""
+        },
+        {
+          "value": " ",
+          "text": ""
+        },
+        {
+          "value": "Barnstable",
+          "text": "Barnstable"
+        },
+        {
+          "value": "Berkshire",
+          "text": "Berkshire"
+        },
+        {
+          "value": "Bristol",
+          "text": "Bristol"
+        },
+        {
+          "value": "Dukes",
+          "text": "Dukes"
+        },
+        {
+          "value": "Essex",
+          "text": "Essex"
+        },
+        {
+          "value": "Franklin",
+          "text": "Franklin"
+        },
+        {
+          "value": "Hampden",
+          "text": "Hampden"
+        },
+        {
+          "value": "Hampshire",
+          "text": "Hampshire"
+        },
+        {
+          "value": "Middlesex",
+          "text": "Middlesex"
+        },
+        {
+          "value": "Nantucket",
+          "text": "Nantucket"
+        },
+        {
+          "value": "Norfolk",
+          "text": "Norfolk"
+        },
+        {
+          "value": "Plymouth",
+          "text": "Plymouth"
+        },
+        {
+          "value": "Suffolk",
+          "text": "Suffolk"
+        },
+        {
+          "value": "Worcester",
+          "text": "Worcester"
+        }
+      ]
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Lname_15",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Fname_17",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Mi_18",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Ln_presenceOf_21",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "mi_presenceOf_22",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Fn_presenceOf_23",
+      "placeholder": null,
+      "label": null,
+      "className": "__F"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "add_25",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "remove_26",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "CheckBox1_30",
+      "placeholder": null,
+      "label": null,
+      "className": "__K"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DateTimeField1_31",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DateTimeField4_41",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DateTimeField1_47",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "WitnessSign_49",
+      "placeholder": null,
+      "label": null,
+      "className": "__L"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "label": null,
+      "className": "__L"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "label": null,
+      "className": "__L"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "ResetButton2_58",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "HTTPSubmitButton2_59",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "file",
+      "id": "fileUpload_widget",
+      "name": null,
+      "placeholder": null,
+      "label": null,
+      "className": null
+    }
+  ],
+  "buttons": [
+    {
+      "tag": "BUTTON",
+      "text": "Send Logs",
+      "id": "toolbarloggerbtn"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Attach",
+      "id": null
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Close",
+      "id": null
+    }
+  ]
+}

@@ -1,0 +1,603 @@
+{
+  "matter": {
+    "id": "matter_089312CB288E47D5BB7472D4D7CECD27",
+    "name": "Ziegler - 07/24/2025",
+    "open_date": "2025-07-24",
+    "close_date": null,
+    "client_type": "representative",
+    "contact_representative": {
+      "id": "contact_D045A1C89CE84887B110F052897AF19B",
+      "first_name": "Ferdinand",
+      "middle_name": "Ziegler,",
+      "last_name": "Ziegler",
+      "suffix": "",
+      "full_name": "Ferdinand Ziegler, Ziegler",
+      "also_known_as": null,
+      "preferred_name": null,
+      "gender_binary": "Male",
+      "date_of_birth": "1982-11-27",
+      "date_of_death": null,
+      "created_at": "2025-07-24T15:40:24Z",
+      "email1": {
+        "type": "home",
+        "email": "aziegler@movementmarketing.com"
+      },
+      "address1": {
+        "type": "home",
+        "street": "901 Colwell Rd",
+        "city": "Burrillville",
+        "postal_code": "02830",
+        "state": "RI",
+        "country_iso": "USA",
+        "country_name": "United States",
+        "full": "901 Colwell Rd, Burrillville, RI 02830"
+      },
+      "phone1": {
+        "type": "mobile",
+        "phone": "(401) 443-0652"
+      }
+    },
+    "contact_main": {
+      "id": "contact_E284009ADF4043AF9A8FE885BA651B73",
+      "first_name": "Gunther",
+      "middle_name": "",
+      "last_name": "Ziegler",
+      "suffix": "",
+      "full_name": "Gunther Ziegler",
+      "also_known_as": "Guenther",
+      "preferred_name": "Guenther",
+      "gender_binary": "Male",
+      "date_of_birth": "1960-01-28",
+      "date_of_death": "2025-06-28",
+      "created_at": "2025-07-24T16:01:49Z",
+      "email1": null,
+      "address1": {
+        "type": "home",
+        "street": "35 Hawthorne St",
+        "city": "North Attleboro",
+        "postal_code": "02760",
+        "state": "MA",
+        "country_iso": "USA",
+        "country_name": "United States",
+        "full": "35 Hawthorne St, North Attleboro, MA 02760"
+      },
+      "phone1": null
+    },
+    "contact_main_status": "deceased",
+    "contact_main_marital_status": "married",
+    "contact_spouse": {
+      "id": "contact_5FDF533746134B0BA774B0175EBEEC43",
+      "first_name": "Bernadette",
+      "middle_name": "Marie",
+      "last_name": "Ziegler",
+      "suffix": "",
+      "full_name": "Bernadette Marie Ziegler",
+      "also_known_as": null,
+      "preferred_name": null,
+      "gender_binary": "Female",
+      "date_of_birth": "1959-06-13",
+      "date_of_death": null,
+      "created_at": "2025-07-24T16:02:49Z",
+      "email1": {
+        "type": "home",
+        "email": "BostonIvy@aol.com"
+      },
+      "address1": {
+        "type": "home",
+        "street": "35 Hawthorne St",
+        "city": "North Attleboro",
+        "postal_code": "02760",
+        "state": "MA",
+        "country_iso": "USA",
+        "country_name": "United States",
+        "full": "35 Hawthorne St, North Attleboro, MA 02760"
+      },
+      "phone1": {
+        "type": "mobile",
+        "phone": "(401) 300-9816"
+      }
+    },
+    "questionnaire": {
+      "id": "quest_7A1EC32467034308977F21C20D0E195A",
+      "internal_type": "Massachusetts Probate",
+      "url_short_name": "massachusettsprobate",
+      "active": true,
+      "quest_approach": "rep-deceased"
+    },
+    "is_submitted": true,
+    "client_may_edit": true,
+    "number_of_children": 3,
+    "number_of_contacts": 5
+  },
+  "contacts_response": {
+    "matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+    "contacts": [
+      {
+        "id": "contact_D045A1C89CE84887B110F052897AF19B",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "is_client": true,
+        "first_name": "Ferdinand",
+        "middle_name": "Ziegler,",
+        "last_name": "Ziegler",
+        "suffix": null,
+        "full_name": "Ferdinand Ziegler, Ziegler",
+        "also_known_as": null,
+        "preferred_name": null,
+        "gender_binary": "Male",
+        "date_of_birth": "1982-11-27",
+        "date_of_death": null,
+        "phone_numbers": [
+          {
+            "id": "phone_561C864EA21D4F15884E8CF53D5756CF",
+            "type": "mobile",
+            "number": "(401) 443-0652"
+          }
+        ],
+        "email_addresses": [
+          {
+            "id": "email_B7DE6BE48B02472F9A72427367B4B14C",
+            "type": "home",
+            "email": "aziegler@movementmarketing.com"
+          }
+        ],
+        "addresses": [
+          {
+            "id": "address_PD1465EDE97E34883B4DE0BA644CF9666",
+            "type": "home",
+            "street": "901 Colwell Rd",
+            "city": "Burrillville",
+            "state": "RI",
+            "postal_code": "02830",
+            "country_iso": "USA",
+            "country_display": "United States of America",
+            "full_address": "901 Colwell Rd, Burrillville, RI 02830"
+          }
+        ],
+        "created_at": "2025-07-24T15:40:24Z",
+        "relationship": {
+          "type": "0CLNT",
+          "short": "Client",
+          "description": "Client"
+        }
+      },
+      {
+        "id": "contact_E284009ADF4043AF9A8FE885BA651B73",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "is_client": false,
+        "first_name": "Gunther",
+        "middle_name": "",
+        "last_name": "Ziegler",
+        "suffix": null,
+        "full_name": "Gunther Ziegler",
+        "also_known_as": "Guenther",
+        "preferred_name": "Guenther",
+        "gender_binary": "Male",
+        "date_of_birth": "1960-01-28",
+        "date_of_death": "2025-06-28",
+        "phone_numbers": [],
+        "email_addresses": [],
+        "addresses": [
+          {
+            "id": "address_PA7FFE0BA721F4BEDB60D1DF9CFA3E0E6",
+            "type": "home",
+            "street": "35 Hawthorne St",
+            "city": "North Attleboro",
+            "state": "MA",
+            "postal_code": "02760",
+            "country_iso": "USA",
+            "country_display": "United States of America",
+            "full_address": "35 Hawthorne St, North Attleboro, MA 02760"
+          }
+        ],
+        "created_at": "2025-07-24T16:01:49Z",
+        "relationship": {
+          "type": "1MAIN",
+          "short": "Decedent",
+          "description": "Decedent"
+        }
+      },
+      {
+        "id": "contact_5FDF533746134B0BA774B0175EBEEC43",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "is_client": false,
+        "first_name": "Bernadette",
+        "middle_name": "Marie",
+        "last_name": "Ziegler",
+        "suffix": null,
+        "full_name": "Bernadette Marie Ziegler",
+        "also_known_as": null,
+        "preferred_name": null,
+        "gender_binary": "Female",
+        "date_of_birth": "1959-06-13",
+        "date_of_death": null,
+        "phone_numbers": [
+          {
+            "id": "phone_56E421911BDC4FC89258E12C47E87EB1",
+            "type": "mobile",
+            "number": "(401) 300-9816"
+          }
+        ],
+        "email_addresses": [
+          {
+            "id": "email_FBFAFAD13B174DC4BAB3BD1D0D580AA6",
+            "type": "home",
+            "email": "BostonIvy@aol.com"
+          }
+        ],
+        "addresses": [
+          {
+            "id": "address_P1C6115A1C20C4218AD2509E819930D70",
+            "type": "home",
+            "street": "35 Hawthorne St",
+            "city": "North Attleboro",
+            "state": "MA",
+            "postal_code": "02760",
+            "country_iso": "USA",
+            "country_display": "United States of America",
+            "full_address": "35 Hawthorne St, North Attleboro, MA 02760"
+          }
+        ],
+        "created_at": "2025-07-24T16:02:49Z",
+        "relationship": {
+          "type": "1MARR",
+          "short": "Married",
+          "description": "Spouse"
+        }
+      },
+      {
+        "id": "contact_D991159609C3455DA11764CED4373EA3",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "is_client": false,
+        "first_name": "Michael",
+        "middle_name": "Daniel",
+        "last_name": "Ziegler",
+        "suffix": null,
+        "full_name": "Michael Daniel Ziegler",
+        "also_known_as": null,
+        "preferred_name": null,
+        "gender_binary": "Male",
+        "date_of_birth": "1984-08-16",
+        "date_of_death": null,
+        "phone_numbers": [
+          {
+            "id": "phone_084D1BC88B3949CF8785313AC99E7921",
+            "type": "mobile",
+            "number": "(401) 261-9233"
+          }
+        ],
+        "email_addresses": [
+          {
+            "id": "email_300A587E51034E259FD7605F7A0715E5",
+            "type": "work",
+            "email": "mziegler@movementmarketing.com"
+          }
+        ],
+        "addresses": [
+          {
+            "id": "address_P2137096CC55744C4B266B7FFDF4E8E06",
+            "type": "home",
+            "street": "57 Oakland Ave",
+            "city": "Burrillville",
+            "state": "RI",
+            "postal_code": "02858",
+            "country_iso": "USA",
+            "country_display": "United States of America",
+            "full_address": "57 Oakland Ave, Burrillville, RI 02858"
+          }
+        ],
+        "created_at": "2025-07-24T16:07:52Z",
+        "relationship": {
+          "type": "2SON",
+          "short": "Son",
+          "description": "Son"
+        }
+      },
+      {
+        "id": "contact_96186521EE1B4AD8A448398C8F320952",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "is_client": false,
+        "first_name": "Shaina",
+        "middle_name": "Denise",
+        "last_name": "Furia",
+        "suffix": null,
+        "full_name": "Shaina Denise Furia",
+        "also_known_as": null,
+        "preferred_name": null,
+        "gender_binary": "Female",
+        "date_of_birth": "1991-01-09",
+        "date_of_death": null,
+        "phone_numbers": [
+          {
+            "id": "phone_AA68917C77CB4015B237E4353551D044",
+            "type": "home",
+            "number": "(401) 952-5730"
+          }
+        ],
+        "email_addresses": [
+          {
+            "id": "email_67E50D950DCC4A87A276D57038BE57AF",
+            "type": "home",
+            "email": "ShainaDenise@gmail.com"
+          }
+        ],
+        "addresses": [
+          {
+            "id": "address_PFDF6BA399FEB4672B6EF47294BCD8CDB",
+            "type": "home",
+            "street": "142 Aldrich Road",
+            "city": "N. Scituate",
+            "state": "RI",
+            "postal_code": "02857",
+            "country_iso": "USA",
+            "country_display": "United States of America",
+            "full_address": "142 Aldrich Road, N. Scituate, RI 02857"
+          }
+        ],
+        "created_at": "2025-07-24T16:09:49Z",
+        "relationship": {
+          "type": "2DATR",
+          "short": "Daughter",
+          "description": "Daughter"
+        }
+      }
+    ]
+  },
+  "assets_response": {
+    "matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+    "assets": [
+      {
+        "id": "asset_C6A17AF999564AFC95559A02FC39E185",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_2B76323C80E04CF38047B9A27258E267",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Address / Description",
+        "identifier_value": "Home/ Business Building",
+        "owner_label": "How Titled?",
+        "owner_value": "Gunther",
+        "credit_label": "Estimated Value",
+        "credit_value": "500000.00",
+        "debit_label": "Mortgage Balance",
+        "debit_value": "0.00",
+        "net_value": "500000.00",
+        "additional_fields": [
+          {
+            "id": "finfield_A3D503CDBC9E45B487E8C299A1237A57",
+            "prompt": "Type",
+            "answer": "Primary Residence"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_B26DAB579BB9464EA9A7894B2711A9C7",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_902310460F2746F3848E68832B131AA2",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Account Number",
+        "identifier_value": "12475149",
+        "owner_label": "Owner",
+        "owner_value": "Joint",
+        "credit_label": "Balance",
+        "credit_value": "27730.59",
+        "debit_label": null,
+        "debit_value": "0.00",
+        "net_value": "27730.59",
+        "additional_fields": [
+          {
+            "id": "finfield_C117CAD3CCF74DC384FA564596D7E329",
+            "prompt": "Bank",
+            "answer": "Citizens Bank"
+          },
+          {
+            "id": "finfield_C7137D356CD849B298CBDF664E907130",
+            "prompt": "Type",
+            "answer": "Checking"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_3463148162A944C391C76585753B9FC3",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_902310460F2746F3848E68832B131AA2",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Account Number",
+        "identifier_value": "...",
+        "owner_label": "Owner",
+        "owner_value": "Gunther",
+        "credit_label": "Balance",
+        "credit_value": "18714.00",
+        "debit_label": null,
+        "debit_value": "0.00",
+        "net_value": "18714.00",
+        "additional_fields": [
+          {
+            "id": "finfield_C117CAD3CCF74DC384FA564596D7E329",
+            "prompt": "Bank",
+            "answer": "PayPal"
+          },
+          {
+            "id": "finfield_C7137D356CD849B298CBDF664E907130",
+            "prompt": "Type",
+            "answer": "Other"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_3AE1A3C70B094698B7227A7DD50AF042",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_902310460F2746F3848E68832B131AA2",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Account Number",
+        "identifier_value": "106370",
+        "owner_label": "Owner",
+        "owner_value": "Joint",
+        "credit_label": "Balance",
+        "credit_value": "145640.30",
+        "debit_label": null,
+        "debit_value": "0.00",
+        "net_value": "145640.30",
+        "additional_fields": [
+          {
+            "id": "finfield_C117CAD3CCF74DC384FA564596D7E329",
+            "prompt": "Bank",
+            "answer": "Bristol County Savings"
+          },
+          {
+            "id": "finfield_C7137D356CD849B298CBDF664E907130",
+            "prompt": "Type",
+            "answer": "Checking"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_98F17D7766254A57BBDA328FBBE4C2B7",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_03D6C207B7F145CEB53DDCC05601713C",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Vehicle Identification Number",
+        "identifier_value": "5NTJCDAF3RH077694",
+        "owner_label": "How Titled",
+        "owner_value": "Gunther",
+        "credit_label": "Estimated Value",
+        "credit_value": "0.00",
+        "debit_label": "Outstanding Debt",
+        "debit_value": "0.00",
+        "net_value": "0.00",
+        "additional_fields": [
+          {
+            "id": "finfield_AA7928BD58E44567A4015F85D2E92DF8",
+            "prompt": "Make, Model, Year",
+            "answer": "Hyundai, Santa Cruz, 2024"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_1BD189EF106742D5A89737FD79C51B89",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_03D6C207B7F145CEB53DDCC05601713C",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Vehicle Identification Number",
+        "identifier_value": "4S4BT63CX55100931",
+        "owner_label": "How Titled",
+        "owner_value": "Gunther",
+        "credit_label": "Estimated Value",
+        "credit_value": "2000.00",
+        "debit_label": "Outstanding Debt",
+        "debit_value": "0.00",
+        "net_value": "2000.00",
+        "additional_fields": [
+          {
+            "id": "finfield_AA7928BD58E44567A4015F85D2E92DF8",
+            "prompt": "Make, Model, Year",
+            "answer": "Subaru, Baja AWD, 20025"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_4E7ED7F7160B4E7DA5DE4C654E948769",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_03D6C207B7F145CEB53DDCC05601713C",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Vehicle Identification Number",
+        "identifier_value": "1J8GN58K68W160484",
+        "owner_label": "How Titled",
+        "owner_value": "Gunther",
+        "credit_label": "Estimated Value",
+        "credit_value": "2000.00",
+        "debit_label": "Outstanding Debt",
+        "debit_value": "0.00",
+        "net_value": "2000.00",
+        "additional_fields": [
+          {
+            "id": "finfield_AA7928BD58E44567A4015F85D2E92DF8",
+            "prompt": "Make, Model, Year",
+            "answer": "Jeep, Liberty, 2008"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_4D7D35DEEF334A778C49A2D8CC8C6B94",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_CCCA987465C64CEEABDA40BC4D38E95A",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "EIN",
+        "identifier_value": "021547056",
+        "owner_label": "Owner",
+        "owner_value": "Gunther",
+        "credit_label": "Estimated Value of the share",
+        "credit_value": "200000.00",
+        "debit_label": null,
+        "debit_value": "0.00",
+        "net_value": "200000.00",
+        "additional_fields": [
+          {
+            "id": "finfield_ED7F21D6F0D54DF1AA213335F14D387A",
+            "prompt": "Business Name",
+            "answer": "AZON Corporation/RingMesh.com"
+          },
+          {
+            "id": "finfield_C547E3B0E10E459E9DCB0E4C8108D489",
+            "prompt": "Type",
+            "answer": "Other"
+          },
+          {
+            "id": "finfield_956D835B222F45E28D17A31F6E316C63",
+            "prompt": "Size of the interest (%)",
+            "answer": "100"
+          }
+        ],
+        "beneficiaries": null
+      },
+      {
+        "id": "asset_9CE5AE863AF643EDA2C0905480E34D75",
+        "for_matter": "matter_089312CB288E47D5BB7472D4D7CECD27",
+        "for_fin_category": "fincat_95709C31093F4C15B7C54E4354D01E9A",
+        "general_category": {
+          "id": null,
+          "label": null
+        },
+        "identifier_label": "Description",
+        "identifier_value": "...",
+        "owner_label": "Owed By",
+        "owner_value": "...",
+        "credit_label": null,
+        "credit_value": "0.00",
+        "debit_label": "Amount",
+        "debit_value": "0.00",
+        "net_value": "0.00",
+        "additional_fields": [],
+        "beneficiaries": null
+      }
+    ]
+  }
+}

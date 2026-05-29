@@ -1,0 +1,237 @@
+{
+  "id": "MPC-485",
+  "url": "https://courtforms.jud.state.ma.us/publicforms/PFC0039",
+  "title": "Affidavit Of Domicile (MPC 485)",
+  "fields": [
+    {
+      "name": "DocketNo_6",
+      "type": "text"
+    },
+    {
+      "name": "Ln_8",
+      "type": "text"
+    },
+    {
+      "name": "Fn_9",
+      "type": "text"
+    },
+    {
+      "name": "Mn_10",
+      "type": "text"
+    },
+    {
+      "name": "DateTimeField3_11",
+      "type": "text"
+    },
+    {
+      "name": "DropDownList1_12",
+      "type": "select-one",
+      "options": [
+        {
+          "v": "",
+          "t": ""
+        },
+        {
+          "v": " ",
+          "t": ""
+        },
+        {
+          "v": "Barnstable",
+          "t": "Barnstable"
+        },
+        {
+          "v": "Berkshire",
+          "t": "Berkshire"
+        },
+        {
+          "v": "Bristol",
+          "t": "Bristol"
+        },
+        {
+          "v": "Dukes",
+          "t": "Dukes"
+        },
+        {
+          "v": "Essex",
+          "t": "Essex"
+        },
+        {
+          "v": "Franklin",
+          "t": "Franklin"
+        },
+        {
+          "v": "Hampden",
+          "t": "Hampden"
+        },
+        {
+          "v": "Hampshire",
+          "t": "Hampshire"
+        },
+        {
+          "v": "Middlesex",
+          "t": "Middlesex"
+        },
+        {
+          "v": "Nantucket",
+          "t": "Nantucket"
+        },
+        {
+          "v": "Norfolk",
+          "t": "Norfolk"
+        },
+        {
+          "v": "Plymouth",
+          "t": "Plymouth"
+        },
+        {
+          "v": "Suffolk",
+          "t": "Suffolk"
+        },
+        {
+          "v": "Worcester",
+          "t": "Worcester"
+        }
+      ]
+    },
+    {
+      "name": "FN_16",
+      "type": "text"
+    },
+    {
+      "name": "LN_17",
+      "type": "text"
+    },
+    {
+      "name": "MI_18",
+      "type": "text"
+    },
+    {
+      "name": "Relationship_21",
+      "type": "text"
+    },
+    {
+      "name": "Domicile_Address_23",
+      "type": "text"
+    },
+    {
+      "name": "Domicile_CityTown_24",
+      "type": "text"
+    },
+    {
+      "name": "Domicile_Apt_25",
+      "type": "text"
+    },
+    {
+      "name": "Domicile_County_28",
+      "type": "text"
+    },
+    {
+      "name": "OwnerOfProperty_30",
+      "type": "checkbox"
+    },
+    {
+      "name": "ResideAtProperty_31",
+      "type": "checkbox"
+    },
+    {
+      "name": "LocatedAtProperty_32",
+      "type": "checkbox"
+    },
+    {
+      "name": "FiledIncomeTax_33",
+      "type": "checkbox"
+    },
+    {
+      "name": "FiledIncomeTax_Year_34",
+      "type": "text"
+    },
+    {
+      "name": "LivingAtAddress_36",
+      "type": "checkbox"
+    },
+    {
+      "name": "DecedentResidence_37",
+      "type": "checkbox"
+    },
+    {
+      "name": "LivingAtAddress_Since_39",
+      "type": "text"
+    },
+    {
+      "name": "DecedentResidence_Address_40",
+      "type": "text"
+    },
+    {
+      "name": "DecedentResidence_CityTown_41",
+      "type": "text"
+    },
+    {
+      "name": "DecedentResidence_Apt_42",
+      "type": "text"
+    },
+    {
+      "name": "DecedentResidence_State_43",
+      "type": "text"
+    },
+    {
+      "name": "DecedentResidence_Zip_44",
+      "type": "text"
+    },
+    {
+      "name": "Temporary_LG1_48",
+      "type": "textarea"
+    },
+    {
+      "name": "NoIntentToAbandon_CityTown_51",
+      "type": "text"
+    },
+    {
+      "name": "NoIntentToAbandon_County_53",
+      "type": "text"
+    },
+    {
+      "name": "LG1_other_55",
+      "type": "textarea"
+    },
+    {
+      "name": "Other_56",
+      "type": "checkbox"
+    },
+    {
+      "name": "DateSignature_63",
+      "type": "text"
+    },
+    {
+      "name": "Address_65",
+      "type": "text"
+    },
+    {
+      "name": "Apt_66",
+      "type": "text"
+    },
+    {
+      "name": "CityTown_67",
+      "type": "text"
+    },
+    {
+      "name": "State_68",
+      "type": "text"
+    },
+    {
+      "name": "Zip_69",
+      "type": "text"
+    },
+    {
+      "name": "PrintName_70",
+      "type": "text"
+    },
+    {
+      "name": "PrimaryPhone_71",
+      "type": "text"
+    },
+    {
+      "name": "Signature_72",
+      "type": "text"
+    }
+  ]
+}

@@ -1,0 +1,589 @@
+{
+  "formId": "MPC-475",
+  "pageCount": 2,
+  "pages": [
+    {
+      "pageNum": 1,
+      "pageName": "Page1",
+      "width": "215.9mm",
+      "height": "279.4mm"
+    },
+    {
+      "pageNum": 2,
+      "pageName": "Page2",
+      "width": "215.9000mm",
+      "height": "279.4000mm"
+    }
+  ],
+  "elements": [
+    {
+      "type": "subform",
+      "name": "form1",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": ""
+    },
+    {
+      "type": "draw",
+      "text": "MPC 475 (3/19/12)  AFSD",
+      "x": "6.35mm",
+      "y": "273.05mm",
+      "parentPath": "form1",
+      "name": "StaticText6",
+      "w": "69.85mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "of",
+      "x": "193.675mm",
+      "y": "273.05mm",
+      "parentPath": "form1",
+      "w": "15.875mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "page",
+      "x": "174.625mm",
+      "y": "273.05mm",
+      "parentPath": "form1",
+      "w": "19.05mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "draw",
+      "text": "MPC 475 (3/19/12)  AFSD",
+      "x": "6.35mm",
+      "y": "273.05mm",
+      "parentPath": "form1",
+      "name": "StaticText6",
+      "w": "76.2mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "of",
+      "x": "193.675mm",
+      "y": "273.05mm",
+      "parentPath": "form1",
+      "w": "15.875mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "page",
+      "x": "174.625mm",
+      "y": "273.05mm",
+      "parentPath": "form1",
+      "w": "19.05mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "subform",
+      "name": "BodyPage1",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1",
+      "w": "203.2000mm"
+    },
+    {
+      "type": "subform",
+      "name": "S1",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1",
+      "w": "203.2mm",
+      "h": "57.15mm"
+    },
+    {
+      "type": "field",
+      "name": "DocketNo",
+      "fieldType": "text",
+      "caption": "Docket No.",
+      "x": "95.25mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "38.1mm",
+      "h": "15.875mm"
+    },
+    {
+      "type": "draw",
+      "text": "Estate of:",
+      "x": "3.175mm",
+      "y": "19.05mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "name": "StaticText6",
+      "w": "50.8mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "field",
+      "name": "Ln",
+      "fieldType": "text",
+      "caption": "Last Name",
+      "x": "73.025mm",
+      "y": "25.4mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "47.625mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "Fn",
+      "fieldType": "text",
+      "caption": "First Name",
+      "x": "3.175mm",
+      "y": "25.4mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "44.45mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "Mn",
+      "fieldType": "text",
+      "caption": "Middle Name",
+      "x": "47.625mm",
+      "y": "25.4mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "25.4mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "DateTimeField3",
+      "fieldType": "date",
+      "caption": "Date of Death:",
+      "x": "3.175mm",
+      "y": "41.275mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "114.3mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "field",
+      "name": "DropDownList1",
+      "fieldType": "dropdown",
+      "caption": "Division",
+      "x": "120.65mm",
+      "y": "15.875mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "79.375mm",
+      "h": "9mm"
+    },
+    {
+      "type": "subform",
+      "name": "Address",
+      "x": "120.65mm",
+      "y": "25.4mm",
+      "parentPath": "form1.BodyPage1.S1",
+      "w": "79.3750mm"
+    },
+    {
+      "type": "subform",
+      "name": "S2",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1",
+      "w": "203.2mm",
+      "h": "57.15mm"
+    },
+    {
+      "type": "draw",
+      "text": "1.",
+      "x": "3.175mm",
+      "y": "3.175mm",
+      "parentPath": "form1.BodyPage1.S2",
+      "name": "StaticText6",
+      "w": "6.35mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "draw",
+      "text": "I hereby certify that, except as noted in paragraph 3 below, none of the following:  The Personal Representative named in the Will, the Special Personal Representative whose appointment is sought, the person(s) who has requested to be appointed or been proposed as a Personal Representative or, any person proposed to replace the Personal Representative who has resigned or been removed, did feloniously and intentionally kill the Decedent.",
+      "x": "9.525mm",
+      "y": "3.175mm",
+      "parentPath": "form1.BodyPage1.S2",
+      "name": "StaticText6",
+      "w": "190.5mm",
+      "h": "19.05mm"
+    },
+    {
+      "type": "draw",
+      "text": "I hereby certify that, except as noted in paragraph 3 below, no person who is entitled to a share in the estate either under the Will itself or by operation of law, by descent or distribution, elective share, omitted spouse or child's share, exempt property, family allowance or through a share of the Decedent's property as a joint tenant or tenant by the entirety, did feloniously and intentionally kill the Decedent.",
+      "x": "9.525mm",
+      "y": "25.4mm",
+      "parentPath": "form1.BodyPage1.S2",
+      "name": "StaticText6",
+      "w": "190.5mm",
+      "h": "19.05mm"
+    },
+    {
+      "type": "draw",
+      "text": "2.",
+      "x": "3.175mm",
+      "y": "25.4mm",
+      "parentPath": "form1.BodyPage1.S2",
+      "name": "StaticText6",
+      "w": "6.35mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "draw",
+      "text": "3.",
+      "x": "3.175mm",
+      "y": "47.625mm",
+      "parentPath": "form1.BodyPage1.S2",
+      "name": "StaticText6",
+      "w": "6.35mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "draw",
+      "text": "Indicate the name(s) of the person(s) described in the preceding paragraphs who has charges pending, is under indictment, has been charged or convicted of any of the crimes listed in connection with the death of the Decedent:",
+      "x": "9.525mm",
+      "y": "47.625mm",
+      "parentPath": "form1.BodyPage1.S2",
+      "name": "StaticText6",
+      "w": "190.5mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "subform",
+      "name": "S3",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1",
+      "w": "203.2mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "draw",
+      "text": "Name:",
+      "x": "9.525mm",
+      "y": "0.294mm",
+      "parentPath": "form1.BodyPage1.S3",
+      "name": "StaticText6",
+      "w": "12.7mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "First Name",
+      "x": "22.225mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1.S3",
+      "w": "53.975mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "Last Name",
+      "x": "111.125mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1.S3",
+      "w": "53.975mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "M.I.",
+      "x": "76.2mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1.S3",
+      "w": "34.925mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "subform",
+      "name": "B1",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1",
+      "w": "203.581mm",
+      "h": "6.415mm"
+    },
+    {
+      "type": "field",
+      "name": "Button1",
+      "fieldType": "text",
+      "caption": "click to add",
+      "x": "142.875mm",
+      "y": "0.093mm",
+      "parentPath": "form1.BodyPage1.B1",
+      "w": "28.575mm",
+      "h": "6.164mm"
+    },
+    {
+      "type": "field",
+      "name": "Button1",
+      "fieldType": "text",
+      "caption": "click to remove",
+      "x": "174.625mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1.B1",
+      "w": "28.575mm",
+      "h": "6.257mm"
+    },
+    {
+      "type": "subform",
+      "name": "S4",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1.BodyPage1",
+      "w": "203.349mm",
+      "h": "126.879mm"
+    },
+    {
+      "type": "draw",
+      "text": "SIGNED UNDER THE PENALTIES OF PERJURY",
+      "x": "3.175mm",
+      "y": "3.175mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "name": "StaticText6",
+      "w": "196.85mm",
+      "h": "6.3500mm"
+    },
+    {
+      "type": "draw",
+      "text": "I certify under the penalties of perjury that the foregoing statements are true to the best of my knowledge and belief.",
+      "x": "3.175mm",
+      "y": "12.7mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "name": "StaticText6",
+      "w": "200.0250mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "draw",
+      "text": "Signature of Petitioner",
+      "x": "88.888mm",
+      "y": "28.153mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "name": "StaticText6",
+      "w": "111.161mm",
+      "h": "6.875mm"
+    },
+    {
+      "type": "field",
+      "name": "DateTimeField4",
+      "fieldType": "date",
+      "caption": "Date",
+      "x": "3.175mm",
+      "y": "22.225mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "69.85mm",
+      "h": "7.645mm"
+    },
+    {
+      "type": "draw",
+      "text": "Signature of Co-Petitioner (if applicable)",
+      "x": "88.888mm",
+      "y": "82.256mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "name": "StaticText6",
+      "w": "111.161mm",
+      "h": "5.975mm"
+    },
+    {
+      "type": "field",
+      "name": "DateTimeField5",
+      "fieldType": "date",
+      "caption": "Date",
+      "x": "3.175mm",
+      "y": "75.906mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "69.85mm",
+      "h": "7.645mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(Print name)",
+      "x": "88.9mm",
+      "y": "88.312mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "111.125mm",
+      "h": "12.7mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(Zip)",
+      "x": "174.625mm",
+      "y": "110.537mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "25.4mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(State)",
+      "x": "158.75mm",
+      "y": "110.537mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "15.875mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(City/Town)",
+      "x": "88.9mm",
+      "y": "110.537mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "69.85mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(Address)",
+      "x": "88.9mm",
+      "y": "101.012mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "76.2mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "(Apt, Unit, No. etc.)",
+      "x": "165.1mm",
+      "y": "101.012mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "34.925mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(Print name)",
+      "x": "88.9mm",
+      "y": "34.631mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "111.125mm",
+      "h": "12.7mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(Zip)",
+      "x": "174.625mm",
+      "y": "56.856mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "25.4mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(State)",
+      "x": "158.75mm",
+      "y": "56.856mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "15.875mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(City/Town)",
+      "x": "88.9mm",
+      "y": "56.856mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "69.85mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField5",
+      "fieldType": "text",
+      "caption": "(Address)",
+      "x": "88.9mm",
+      "y": "47.331mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "76.2mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField4",
+      "fieldType": "text",
+      "caption": "(Apt, Unit, No. etc.)",
+      "x": "165.1mm",
+      "y": "47.331mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "34.925mm",
+      "h": "9.525mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField6",
+      "fieldType": "text",
+      "caption": "Primary Phone #",
+      "x": "85.725mm",
+      "y": "66.61mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "114.2164mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "field",
+      "name": "TextField6",
+      "fieldType": "text",
+      "caption": "Primary Phone #",
+      "x": "88.984mm",
+      "y": "120.585mm",
+      "parentPath": "form1.BodyPage1.S4",
+      "w": "111.041mm",
+      "h": "6.35mm"
+    },
+    {
+      "type": "subform",
+      "name": "reset",
+      "x": "0mm",
+      "y": "0mm",
+      "parentPath": "form1",
+      "w": "203.28mm",
+      "h": "8.828mm"
+    },
+    {
+      "type": "field",
+      "name": "Button1",
+      "fieldType": "text",
+      "caption": "Reset Form",
+      "x": "174.625mm",
+      "y": "1.488mm",
+      "parentPath": "form1.reset",
+      "w": "28.575mm",
+      "h": "6.257mm"
+    }
+  ]
+}

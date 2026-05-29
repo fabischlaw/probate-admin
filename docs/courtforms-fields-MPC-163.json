@@ -1,0 +1,937 @@
+{
+  "id": "MPC-163",
+  "url": "https://courtforms.jud.state.ma.us/publicforms/PFC0016",
+  "title": "Devisees (MPC 163)",
+  "fieldCount": 94,
+  "fields": [
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "TextField4xfa[0].form[0].form1[0].pageSet[0]Page1_7",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "TextField4xfa[0].form[0].form1[0].pageSet[0]Page1_8",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "HTTPSubmitButton2xfa[0].form[0].form1[0].pageSet[0]Page1_9",
+      "placeholder": null,
+      "label": null,
+      "className": "__D"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "ResetButton2xfa[0].form[0].form1[0].pageSet[0]Page1_10",
+      "placeholder": null,
+      "label": null,
+      "className": "__D"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DocketNo_6",
+      "placeholder": null,
+      "label": null,
+      "className": "__I"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "OriginalForm_7",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "LastName_9",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "FirstName_10",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "MiddleName_11",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DateOfDeath_12",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "id": null,
+      "name": "Division_13",
+      "placeholder": null,
+      "label": null,
+      "className": null,
+      "options": [
+        {
+          "value": "",
+          "text": ""
+        },
+        {
+          "value": " ",
+          "text": ""
+        },
+        {
+          "value": "Barnstable",
+          "text": "Barnstable"
+        },
+        {
+          "value": "Berkshire",
+          "text": "Berkshire"
+        },
+        {
+          "value": "Bristol",
+          "text": "Bristol"
+        },
+        {
+          "value": "Dukes",
+          "text": "Dukes"
+        },
+        {
+          "value": "Essex",
+          "text": "Essex"
+        },
+        {
+          "value": "Franklin",
+          "text": "Franklin"
+        },
+        {
+          "value": "Hampden",
+          "text": "Hampden"
+        },
+        {
+          "value": "Hampshire",
+          "text": "Hampshire"
+        },
+        {
+          "value": "Middlesex",
+          "text": "Middlesex"
+        },
+        {
+          "value": "Nantucket",
+          "text": "Nantucket"
+        },
+        {
+          "value": "Norfolk",
+          "text": "Norfolk"
+        },
+        {
+          "value": "Plymouth",
+          "text": "Plymouth"
+        },
+        {
+          "value": "Suffolk",
+          "text": "Suffolk"
+        },
+        {
+          "value": "Worcester",
+          "text": "Worcester"
+        }
+      ]
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "AmendedForm_14",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_15",
+      "placeholder": null,
+      "label": null,
+      "className": "__M"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q1_DatesOfAllCodicils_22",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q1_CodicilDates_25",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q1_DecedentWillDate_27",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_NameOfdevisee_40",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_Address_41",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_RelationshipToDecedent_42",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q2_YesMinor_44",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_NameOfdevisee_46",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_Address_47",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_RelationshipToDecedent_48",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q2_YesMinor_50",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_NameOfdevisee_52",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_Address_53",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q2_RelationshipToDecedent_54",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q2_YesMinor_56",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_58",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_59",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q3_DeviseesNotLiving_63",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q3_NameOfPredeceasedDevisee_72",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q3_DateOfDeathOfPredeceasedDevisee_73",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q3_RelationToDecedent_74",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q3_NameOfPredeceasedDevisee_76",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q3_DateOfDeathOfPredeceasedDevisee_77",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q3_RelationToDecedent_78",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_80",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_81",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q4_ContingentDevisees_84",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q4_NameOfContingentDevisee_95",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q4_Address_96",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q4_RelationshipToDecedent_97",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q4_YesMinorOfContingentDevisee_99",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q4_NameOfContingentDevisee_101",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q4_Address_102",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Q4_RelationshipToDecedent_103",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q4_YesMinorOfContingentDevisee_105",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_107",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_108",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "TextField4xfa[0].form[0].form1[0].pageSet[0]Page2_ID_2",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "TextField4xfa[0].form[0].form1[0].pageSet[0]Page2_ID_3",
+      "placeholder": null,
+      "label": null,
+      "className": "__B"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q5_NameOfDevisee_121",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Minor_123",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_UnbornOrUnascertained_124",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_IncapacitatedOrProtected_125",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q5_Age_127",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Unrepresented_130",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Conservator_131",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Guardian_132",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q5_NameAddressOfRep_133",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q5_NameOfDevisee_135",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Minor_137",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_UnbornOrUnascertained_138",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_IncapacitatedOrProtected_139",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q5_Age_141",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Unrepresented_144",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Conservator_145",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q5_Guardian_146",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Q5_NameAddressOfRep_147",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_149",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_150",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Cell1_162",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Cell2_163",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q6_PerssonalRep_165",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q6_Unrepresented_167",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Cell1_169",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Cell1_171",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "Cell2_172",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q6_PerssonalRep_174",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": null,
+      "name": "Q6_Unrepresented_176",
+      "placeholder": null,
+      "label": null,
+      "className": "__J"
+    },
+    {
+      "tag": "TEXTAREA",
+      "type": "textarea",
+      "id": null,
+      "name": "Cell1_178",
+      "placeholder": null,
+      "label": null,
+      "className": "__Q"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_180",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_181",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "DateSignatureOfPetitioner_188",
+      "placeholder": null,
+      "label": null,
+      "className": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "PrintName_189",
+      "placeholder": null,
+      "label": null,
+      "className": "__I"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": "SignatureOfPetitioner_190",
+      "placeholder": null,
+      "label": null,
+      "className": "__e"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_192",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "Button1_193",
+      "placeholder": null,
+      "label": null,
+      "className": "__Y"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "ResetButton1_195",
+      "placeholder": null,
+      "label": null,
+      "className": "__D"
+    },
+    {
+      "tag": "INPUT",
+      "type": "button",
+      "id": null,
+      "name": "HTTPSubmitButton1_196",
+      "placeholder": null,
+      "label": null,
+      "className": "__D"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "label": null,
+      "className": "__e"
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": null,
+      "name": null,
+      "placeholder": null,
+      "label": null,
+      "className": "__e"
+    },
+    {
+      "tag": "INPUT",
+      "type": "file",
+      "id": "fileUpload_widget",
+      "name": null,
+      "placeholder": null,
+      "label": null,
+      "className": null
+    }
+  ],
+  "buttons": [
+    {
+      "tag": "BUTTON",
+      "text": "Send Logs",
+      "id": "toolbarloggerbtn"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Attach",
+      "id": null
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Close",
+      "id": null
+    }
+  ]
+}

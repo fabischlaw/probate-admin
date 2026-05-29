@@ -1,0 +1,181 @@
+{
+  "id": "MPC-475",
+  "url": "https://courtforms.jud.state.ma.us/publicforms/PFC0085",
+  "title": "Cause of Death Affidavit (MPC 475)",
+  "fields": [
+    {
+      "name": "DocketNo_6",
+      "type": "text"
+    },
+    {
+      "name": "Ln_8",
+      "type": "text"
+    },
+    {
+      "name": "Fn_9",
+      "type": "text"
+    },
+    {
+      "name": "Mn_10",
+      "type": "text"
+    },
+    {
+      "name": "DoB_ate_11",
+      "type": "text"
+    },
+    {
+      "name": "ddl_Division_12",
+      "type": "select-one",
+      "options": [
+        {
+          "v": "",
+          "t": ""
+        },
+        {
+          "v": " ",
+          "t": ""
+        },
+        {
+          "v": "Barnstable",
+          "t": "Barnstable"
+        },
+        {
+          "v": "Berkshire",
+          "t": "Berkshire"
+        },
+        {
+          "v": "Bristol",
+          "t": "Bristol"
+        },
+        {
+          "v": "Dukes",
+          "t": "Dukes"
+        },
+        {
+          "v": "Essex",
+          "t": "Essex"
+        },
+        {
+          "v": "Franklin",
+          "t": "Franklin"
+        },
+        {
+          "v": "Hampden",
+          "t": "Hampden"
+        },
+        {
+          "v": "Hampshire",
+          "t": "Hampshire"
+        },
+        {
+          "v": "Middlesex",
+          "t": "Middlesex"
+        },
+        {
+          "v": "Nantucket",
+          "t": "Nantucket"
+        },
+        {
+          "v": "Norfolk",
+          "t": "Norfolk"
+        },
+        {
+          "v": "Plymouth",
+          "t": "Plymouth"
+        },
+        {
+          "v": "Suffolk",
+          "t": "Suffolk"
+        },
+        {
+          "v": "Worcester",
+          "t": "Worcester"
+        }
+      ]
+    },
+    {
+      "name": "txt_3_Fn_23",
+      "type": "text"
+    },
+    {
+      "name": "txt_3_Ln_24",
+      "type": "text"
+    },
+    {
+      "name": "txt_3_Mi_25",
+      "type": "text"
+    },
+    {
+      "name": "DateTimeField4_34",
+      "type": "text"
+    },
+    {
+      "name": "DateTimeField5_35",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetPrintName_36",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetZip_37",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetState_38",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetCityTown_39",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetAddr_40",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetAptNo_41",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetPrintName_42",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetZip_43",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetState_44",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetCityTown_45",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetAddr_46",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetAptNo_47",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetPphone_48",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetPphone_49",
+      "type": "text"
+    },
+    {
+      "name": "txt_PetSign_50",
+      "type": "text"
+    },
+    {
+      "name": "txt_CoPetSign_51",
+      "type": "text"
+    }
+  ]
+}
