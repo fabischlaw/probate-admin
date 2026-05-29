@@ -120,6 +120,8 @@ app.post('/api/auth/login', async (req, res) => {
     const { email, password, rememberMe } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     const user = await verifyUser(email, password);
+    console.log('[LOGIN] verifyUser result:', user ? 'found' : 'not found');
+    console.log('[LOGIN] users.json exists:', fs.existsSync(path.join(__dirname, 'data/users.json')));
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
     req.session.userId = user.id;
     req.session.user   = user;
