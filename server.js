@@ -68,19 +68,16 @@ app.use(express.json());
 // Trust Railway's (and other reverse proxies') SSL termination
 app.set('trust proxy', 1);
 
-// ── Session middleware ────────────────────────────────────────────────────────
+// ── Session middleware (memory store — reliable on Railway) ───────────────────
 app.use(session({
-  store: new SQLiteStore({
-    db:  'sessions.sqlite',
-    dir: './data',
-  }),
   secret:            process.env.SESSION_SECRET || 'dev-secret-change-in-production',
   resave:            false,
   saveUninitialized: false,
   cookie: {
     secure:   process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge:   24 * 60 * 60 * 1000,  // 24 hours default
+    sameSite: 'lax',
+    maxAge:   24 * 60 * 60 * 1000,
   },
 }));
 
@@ -107,6 +104,10 @@ app.use(express.static('public'));
 // ── Auth API routes (public — no requireAuth) ─────────────────────────────────
 app.post('/api/auth/login', async (req, res) => {
   try {
+    console.log('[LOGIN] attempt:', req.body?.email);
+    console.log('[LOGIN] protocol:', req.protocol);
+    console.log('[LOGIN] secure:', req.secure);
+    console.log('[LOGIN] NODE_ENV:', process.env.NODE_ENV);
     const { email, password, rememberMe } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     const user = await verifyUser(email, password);
@@ -114,6 +115,8 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.userId = user.id;
     req.session.user   = user;
     if (rememberMe) req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+    console.log('[LOGIN] session id:', req.session.id);
+    console.log('[LOGIN] user set:', !!req.session.userId);
     logAuditEvent(req, 'LOGIN', null, null, `User logged in from ${req.ip}`).catch(() => {});
     res.json({
       success: true,
