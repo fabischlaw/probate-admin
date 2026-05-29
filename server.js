@@ -207,7 +207,7 @@ app.get('/api/diag', (req, res) => {
 
 // ── Protect all subsequent routes ─────────────────────────────────────────────
 app.use((req, res, next) => {
-  const publicPaths = ['/login', '/setup', '/api/auth/'];
+  const publicPaths = ['/login', '/setup', '/api/auth/', '/api/health', '/api/diag', '/ping'];
   if (publicPaths.some(p => req.path.startsWith(p))) return next();
   return requireAuth(req, res, next);
 });

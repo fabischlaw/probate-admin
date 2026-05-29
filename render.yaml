@@ -3,7 +3,7 @@ services:
     name: probate-admin
     runtime: node
     plan: starter
-    buildCommand: npm install && npx puppeteer browsers install chrome
+    buildCommand: npm install && (npx puppeteer browsers install chrome || echo "Puppeteer chrome install skipped")
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
