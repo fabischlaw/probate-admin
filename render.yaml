@@ -3,7 +3,7 @@ services:
     name: probate-admin
     runtime: node
     plan: starter
-    buildCommand: "npm ci && npx puppeteer browsers install chrome || echo 'Chrome install warning'"
+    buildCommand: "npm ci && node scripts/installChrome.js"
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
