@@ -3,7 +3,10 @@
 const path = require('path');
 const fs   = require('fs');
 
-const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '../data');
+const DATA_DIR = process.env.DATA_DIR ||
+  (process.env.NODE_ENV === 'production'
+    ? '/tmp/probate-data'
+    : path.join(__dirname, '../data'));
 
 const PATHS = {
   DATA_DIR,
