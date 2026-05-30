@@ -85,7 +85,7 @@ async function fillMPC170(matter, contacts, assets, toggleAnswers = {}) {
     sigDate, repName,
   };
 
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page    = await browser.newPage();
   await page.goto(COURT_URL, { waitUntil: 'networkidle0' });
   try { await page.waitForSelector('[name="DocketNo_6"]', { timeout: 10000 }); } catch (_) {}

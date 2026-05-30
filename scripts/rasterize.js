@@ -7,7 +7,7 @@ const [,, pdfPath, outDir] = process.argv;
 if (!pdfPath) { console.error('Usage: node rasterize.js <pdf> <outDir>'); process.exit(1); }
 
 (async () => {
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   await page.setViewport({ width: 850, height: 1100 });
 

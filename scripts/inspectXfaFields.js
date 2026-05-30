@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function inspectForm(formPath, screenshotPath) {
-  const browser = await puppeteer.launch({ headless: 'new' });
+  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
 
   const absolutePath = path.resolve(formPath);
