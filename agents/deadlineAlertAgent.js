@@ -8,13 +8,11 @@ const { getAuthHeaders }     = require('../auth');
 const { calculateDeadlines } = require('../admin/deadlineCalculator');
 const { categorizeMatter }   = require('../admin/detectMatterType');
 const PATHS = require('../config/paths');
+const pool  = require('../config/database');
 
-const DV_BASE      = 'https://api.decisionvault.com/v1';
-const ADMIN_FILE   = PATHS.ADMIN_FILE;
-const HISTORY_FILE = PATHS.ALERT_HISTORY_FILE;
-const EMAIL_FILE   = PATHS.ALERT_EMAIL_FILE;
+const DV_BASE    = 'https://api.decisionvault.com/v1';
+const EMAIL_FILE = PATHS.ALERT_EMAIL_FILE;
 
-// Alert severity thresholds — stricter than the deadline calculator's display thresholds
 function alertSeverity(daysUntil) {
   if (daysUntil === null || daysUntil === undefined) return null;
   if (daysUntil < 0)   return 'overdue';
@@ -23,19 +21,17 @@ function alertSeverity(daysUntil) {
   return null;
 }
 
-function loadAdminData() {
-  try { return JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf8')); }
-  catch { return {}; }
+async function loadHistory() {
+  const { rows } = await pool.query("SELECT value FROM settings WHERE key='alertHistory'");
+  return rows.length > 0 ? rows[0].value : {};
 }
 
-function loadHistory() {
-  try { return JSON.parse(fs.readFileSync(HISTORY_FILE, 'utf8')); }
-  catch { return {}; }
-}
-
-function saveHistory(data) {
-  fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
-  fs.writeFileSync(HISTORY_FILE, JSON.stringify(data, null, 2));
+async function saveHistory(data) {
+  await pool.query(
+    `INSERT INTO settings (key, value) VALUES ('alertHistory', $1)
+     ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`,
+    [JSON.stringify(data)]
+  );
 }
 
 function saveEmailDraft(text) {
@@ -63,7 +59,7 @@ function shouldAlert(alertId, severity, history) {
   if (rec.dismissed) return false;
   const hoursSince = (Date.now() - new Date(rec.lastAlertDate).getTime()) / 3600000;
   if (severity === 'overdue' || severity === 'urgent') return hoursSince >= 24;
-  return hoursSince >= 24 * 7; // upcoming: re-alert weekly
+  return hoursSince >= 24 * 7;
 }
 
 async function fetchMatters() {
@@ -72,12 +68,26 @@ async function fetchMatters() {
   return res.data.results || res.data || [];
 }
 
+async function loadAdminDataDB() {
+  const { rows } = await pool.query('SELECT matter_id, stage, key_dates, matter_type_overrides, saved_matter_type FROM matter_admin');
+  const result = {};
+  for (const row of rows) {
+    result[row.matter_id] = {
+      stage:              row.stage,
+      keyDates:           row.key_dates           || {},
+      matterTypeOverrides: row.matter_type_overrides || {},
+      savedMatterType:    row.saved_matter_type,
+    };
+  }
+  return result;
+}
+
 async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
-  const adminData = adminDataArg || loadAdminData();
+  const adminData = adminDataArg || await loadAdminDataDB();
   const matters   = mattersArg   || await fetchMatters();
 
   const matterById = Object.fromEntries(matters.map(m => [m.id, m]));
-  const history    = loadHistory();
+  const history    = await loadHistory();
   const now        = new Date().toISOString();
   const alerts     = [];
   const errors     = [];
@@ -108,7 +118,7 @@ async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
         const severity = alertSeverity(dl.daysUntil);
         if (!severity) continue;
 
-        const alertId      = `${matterId}:${dl.key}:${dl.dueDate}`;
+        const alertId        = `${matterId}:${dl.key}:${dl.dueDate}`;
         const alreadyAlerted = !!history[alertId];
 
         alerts.push({
@@ -129,7 +139,6 @@ async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
         });
       }
 
-      // Hearing date
       const hearing = keyDates.nextHearingDate;
       if (hearing) {
         const hDate  = new Date(hearing + 'T00:00:00');
@@ -164,7 +173,6 @@ async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
     }
   }
 
-  // Sort: overdue → urgent → upcoming, then by due date
   const SEV_ORDER = { overdue: 0, urgent: 1, upcoming: 2 };
   alerts.sort((a, b) => {
     const s = SEV_ORDER[a.severity] - SEV_ORDER[b.severity];
@@ -177,7 +185,6 @@ async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
     upcoming: alerts.filter(a => a.severity === 'upcoming').length,
   };
 
-  // Update history for alerts that should be sent
   for (const alert of alerts.filter(a => a.shouldSend)) {
     const existing = history[alert.alertId];
     history[alert.alertId] = {
@@ -188,9 +195,8 @@ async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
       dismissed:      false,
     };
   }
-  saveHistory(history);
+  await saveHistory(history);
 
-  // Email draft (Part 4)
   const runDate  = new Date();
   const nextRun  = new Date(runDate);
   nextRun.setDate(nextRun.getDate() + 1);
@@ -253,7 +259,6 @@ async function runDeadlineAlertAgent(mattersArg, adminDataArg) {
   return { runDate: now, alertCount: alerts.length, alerts, summary, errors };
 }
 
-// Allow standalone run: node agents/deadlineAlertAgent.js
 if (require.main === module) {
   runDeadlineAlertAgent()
     .then(r => { console.log(JSON.stringify(r.summary, null, 2)); process.exit(0); })

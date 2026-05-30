@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express   = require('express');
-const fs        = require('fs');
 const axios     = require('axios');
 const path      = require('path');
 const Anthropic = require('@anthropic-ai/sdk');
@@ -55,10 +54,8 @@ const MA_FILLERS = {
 // MPC-560 is court-issued — no filler; excluded from packages
 const COURT_ISSUED_FORMS = new Set(['MPC-560']);
 
-// ── Data paths (supports Railway Volume via DATA_DIR env var) ─────────────────
-const PATHS = require('./config/paths');
-console.log('[Startup] Data directory:', PATHS.DATA_DIR);
-console.log('[Startup] Users file exists:', fs.existsSync(PATHS.USERS_FILE));
+const pool           = require('./config/database');
+const { initDatabase } = require('./config/initDatabase');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -90,8 +87,8 @@ app.use(session({
 }));
 
 // ── Root: redirect to setup or login if not authenticated ─────────────────────
-app.get('/', (req, res, next) => {
-  if (!isSetupComplete()) return res.redirect('/setup');
+app.get('/', async (req, res, next) => {
+  if (!await isSetupComplete()) return res.redirect('/setup');
   if (!req.session?.userId) return res.redirect('/login');
   next();
 });
@@ -101,8 +98,8 @@ app.get('/login', (req, res) => {
   if (req.session?.userId) return res.redirect('/');
   res.sendFile(path.join(__dirname, 'public/login.html'));
 });
-app.get('/setup', (req, res) => {
-  if (isSetupComplete()) return res.redirect('/login');
+app.get('/setup', async (req, res) => {
+  if (await isSetupComplete()) return res.redirect('/login');
   res.sendFile(path.join(__dirname, 'public/setup.html'));
 });
 
@@ -120,7 +117,6 @@ app.post('/api/auth/login', async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
     const user = await verifyUser(email, password);
     console.log('[LOGIN] verifyUser result:', user ? 'found' : 'not found');
-    console.log('[LOGIN] users.json exists:', fs.existsSync(PATHS.USERS_FILE));
     if (!user) return res.status(401).json({ error: 'Invalid email or password' });
     req.session.userId = user.id;
     req.session.user   = user;
@@ -144,13 +140,11 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.post('/api/auth/setup', async (req, res) => {
   try {
-    if (isSetupComplete()) return res.status(403).json({ error: 'Setup already complete' });
+    if (await isSetupComplete()) return res.status(403).json({ error: 'Setup already complete' });
     const { name, email, password, teamMembers } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: 'Name, email, and password required' });
     await createUser({ name, email, role: 'attorney', password });
     console.log('[Setup] Attorney created:', email);
-    console.log('[Setup] Users file exists:', fs.existsSync(PATHS.USERS_FILE));
-    console.log('[Setup] Users file path:', PATHS.USERS_FILE);
     if (Array.isArray(teamMembers)) {
       for (const member of teamMembers) {
         if (member.name && member.email) {
@@ -172,8 +166,12 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
 });
 
 // ── User management ───────────────────────────────────────────────────────────
-app.get('/api/users', requireAuth, requireRole('attorney', 'firm_admin'), (req, res) => {
-  res.json(getUsers());
+app.get('/api/users', requireAuth, requireRole('attorney', 'firm_admin'), async (req, res) => {
+  try {
+    res.json(await getUsers());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 app.post('/api/users', requireAuth, requireRole('attorney', 'firm_admin'), async (req, res) => {
   try {
@@ -194,14 +192,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.get('/api/diag', (req, res) => {
+app.get('/api/diag', async (req, res) => {
+  let dbConnected = false;
+  let dbError = null;
+  try {
+    await pool.query('SELECT 1');
+    dbConnected = true;
+  } catch (err) {
+    dbError = err.message;
+  }
   res.json({
-    DATA_DIR:        PATHS.DATA_DIR,
-    DATA_DIR_ENV:    process.env.DATA_DIR || '(not set)',
-    NODE_ENV:        process.env.NODE_ENV || '(not set)',
-    dataDirExists:   fs.existsSync(PATHS.DATA_DIR),
-    usersFileExists: fs.existsSync(PATHS.USERS_FILE),
-    usersFilePath:   PATHS.USERS_FILE,
+    NODE_ENV:     process.env.NODE_ENV    || '(not set)',
+    DATABASE_URL: process.env.DATABASE_URL ? '[set]' : '(not set)',
+    dbConnected,
+    dbError,
   });
 });
 
@@ -772,13 +776,12 @@ app.post('/api/ma/matter/:matterId/generate-package', async (req, res) => {
     const mappedType = FORM_TYPE_MAP[proceedingType];
     if (mappedType) {
       try {
-        const aData = loadAdminData();
-        const aRec  = getOrInit(aData, req.params.matterId);
+        const aRec = await getOrInitDB(req.params.matterId);
         if (!aRec.savedMatterType) {
           Object.assign(aRec.matterTypeOverrides, mappedType);
           aRec.savedMatterType = { ...mappedType, state: 'MA', isAncillary: false,
             savedAt: new Date().toISOString(), savedBy: 'auto:form_generation' };
-          saveAdminData(aData);
+          await saveAdminRecordDB(req.params.matterId, aRec);
         }
       } catch {}
     }
@@ -796,7 +799,6 @@ app.post('/api/ma/matter/:matterId/generate-package', async (req, res) => {
 
 // ── Estate Administration Module ─────────────────────────────────────────────
 
-const fsSync = require('fs');
 const { calculateDeadlines }     = require('./admin/deadlineCalculator');
 const { TASK_PHASES, getAllTasks, STAGE_TASK_MAPPING, PLANNING_STAGE_IDS, ADMIN_STAGE_IDS } = require('./admin/taskDefinitions');
 const { LETTER_TEMPLATES }       = require('./admin/letterTemplates');
@@ -806,48 +808,174 @@ const { runDeadlineAlertAgent, detectMatterState } = require('./agents/deadlineA
 const { runDocumentScannerAgent } = require('./agents/documentScannerAgent');
 const { identifyContacts }       = require('./forms/common');
 
-const ADMIN_FILE       = PATHS.ADMIN_FILE;
-const AI_SETTINGS_FILE = PATHS.AI_SETTINGS_FILE;
-const FLAGS_FILE       = PATHS.FLAGS_FILE;
-const SCAN_HISTORY_FILE = PATHS.SCAN_HISTORY_FILE;
-
 const AI_SETTINGS_DEFAULTS = {
   AI_DEADLINE_ALERTS:  true,
   AI_DOCUMENT_SCANNER: true,
   AI_EXTRACTION:       false,
 };
 
-function loadAiSettings() {
-  try { return { ...AI_SETTINGS_DEFAULTS, ...JSON.parse(fsSync.readFileSync(AI_SETTINGS_FILE, 'utf8')) }; }
-  catch { return { ...AI_SETTINGS_DEFAULTS }; }
-}
-function saveAiSettings(settings) {
-  fsSync.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-  fsSync.writeFileSync(AI_SETTINGS_FILE, JSON.stringify(settings, null, 2));
+// ── DB helper functions ───────────────────────────────────────────────────────
+
+async function loadAiSettings() {
+  const { rows } = await pool.query("SELECT value FROM settings WHERE key='aiSettings'");
+  return rows.length > 0 ? { ...AI_SETTINGS_DEFAULTS, ...rows[0].value } : { ...AI_SETTINGS_DEFAULTS };
 }
 
-function loadFlags() {
-  try { return JSON.parse(fsSync.readFileSync(FLAGS_FILE, 'utf8')); }
-  catch { return []; }
-}
-function saveFlags(flags) {
-  fsSync.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-  fsSync.writeFileSync(FLAGS_FILE, JSON.stringify(flags, null, 2));
-}
-
-function loadScanHistory() {
-  try { return JSON.parse(fsSync.readFileSync(SCAN_HISTORY_FILE, 'utf8')); }
-  catch { return null; }
+async function saveAiSettings(settings) {
+  await pool.query(
+    `INSERT INTO settings (key, value) VALUES ('aiSettings', $1)
+     ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`,
+    [JSON.stringify(settings)]
+  );
 }
 
-function loadAdminData() {
-  try { return JSON.parse(fsSync.readFileSync(ADMIN_FILE, 'utf8')); }
-  catch { return {}; }
+async function loadScanHistory() {
+  const { rows } = await pool.query("SELECT value FROM settings WHERE key='scanHistory'");
+  return rows.length > 0 ? rows[0].value : null;
 }
-function saveAdminData(data) {
-  fsSync.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-  fsSync.writeFileSync(ADMIN_FILE, JSON.stringify(data, null, 2));
+
+async function loadAlertHistory() {
+  const { rows } = await pool.query("SELECT value FROM settings WHERE key='alertHistory'");
+  return rows.length > 0 ? rows[0].value : {};
 }
+
+async function saveAlertHistory(data) {
+  await pool.query(
+    `INSERT INTO settings (key, value) VALUES ('alertHistory', $1)
+     ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`,
+    [JSON.stringify(data)]
+  );
+}
+
+function toISO(v) {
+  if (!v) return null;
+  return v instanceof Date ? v.toISOString() : String(v);
+}
+
+function dbTaskRowToVal(t) {
+  if (t.previous_status || t.set_by || t.notes) {
+    return {
+      status:         t.status,
+      previousStatus: t.previous_status || null,
+      setDate:        toISO(t.set_date),
+      setBy:          t.set_by   || null,
+      notes:          t.notes    || null,
+    };
+  }
+  return t.status;
+}
+
+function dbAdminRowToRec(row, tasks) {
+  return {
+    stage:                   normalizeStage(row.stage),
+    keyDates:                row.key_dates             || {},
+    notes:                   row.notes                 || null,
+    matterTypeOverrides:     row.matter_type_overrides || {},
+    taskAssignments:         row.task_assignments      || {},
+    staff:                   row.staff                 || [],
+    customNotes:             row.custom_notes          != null ? row.custom_notes : '',
+    pendingMatterTypeChange: row.pending_matter_type_change  || null,
+    savedMatterType:         row.saved_matter_type     || null,
+    tasks:                   tasks || {},
+  };
+}
+
+async function getOrInitDB(matterId) {
+  const [{ rows: adminRows }, { rows: taskRows }] = await Promise.all([
+    pool.query('SELECT * FROM matter_admin WHERE matter_id=$1', [matterId]),
+    pool.query('SELECT * FROM matter_tasks WHERE matter_id=$1', [matterId]),
+  ]);
+  const tasks = {};
+  for (const t of taskRows) tasks[t.task_id] = dbTaskRowToVal(t);
+
+  if (adminRows.length === 0) {
+    return {
+      stage: 'PETITION_PREP',
+      keyDates: { dateOfDeath: null, appointmentDate: null, publicationDate: null,
+                  firstPublicationDate: null, nextHearingDate: null, nextHearingDescription: null },
+      tasks, taskAssignments: {}, staff: [], customNotes: '', matterTypeOverrides: {},
+      pendingMatterTypeChange: null, savedMatterType: null, notes: null,
+    };
+  }
+  return dbAdminRowToRec(adminRows[0], tasks);
+}
+
+async function saveAdminRecordDB(matterId, rec) {
+  await pool.query(
+    `INSERT INTO matter_admin
+       (matter_id, stage, key_dates, notes, matter_type_overrides, task_assignments,
+        staff, custom_notes, pending_matter_type_change, saved_matter_type)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+     ON CONFLICT (matter_id) DO UPDATE SET
+       stage=$2, key_dates=$3, notes=$4, matter_type_overrides=$5, task_assignments=$6,
+       staff=$7, custom_notes=$8, pending_matter_type_change=$9, saved_matter_type=$10,
+       updated_at=NOW()`,
+    [
+      matterId,
+      rec.stage || 'PETITION_PREP',
+      JSON.stringify(rec.keyDates || {}),
+      rec.notes || null,
+      JSON.stringify(rec.matterTypeOverrides || {}),
+      JSON.stringify(rec.taskAssignments || {}),
+      JSON.stringify(rec.staff || []),
+      rec.customNotes != null ? rec.customNotes : '',
+      rec.pendingMatterTypeChange ? JSON.stringify(rec.pendingMatterTypeChange) : null,
+      rec.savedMatterType ? JSON.stringify(rec.savedMatterType) : null,
+    ]
+  );
+  // Sync tasks: delete all then reinsert
+  await pool.query('DELETE FROM matter_tasks WHERE matter_id=$1', [matterId]);
+  for (const [taskId, val] of Object.entries(rec.tasks || {})) {
+    const [status, prevStatus, setDate, setBy, notes] = typeof val === 'string'
+      ? [val, null, null, null, null]
+      : [val.status, val.previousStatus || null, val.setDate || null, val.setBy || null, val.notes || null];
+    await pool.query(
+      'INSERT INTO matter_tasks (matter_id, task_id, status, previous_status, set_date, set_by, notes) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [matterId, taskId, status, prevStatus, setDate, setBy, notes]
+    );
+  }
+}
+
+async function getAllAdminDataDB() {
+  const [{ rows: adminRows }, { rows: taskRows }] = await Promise.all([
+    pool.query('SELECT * FROM matter_admin'),
+    pool.query('SELECT * FROM matter_tasks'),
+  ]);
+  const tasksByMatter = {};
+  for (const t of taskRows) {
+    if (!tasksByMatter[t.matter_id]) tasksByMatter[t.matter_id] = {};
+    tasksByMatter[t.matter_id][t.task_id] = dbTaskRowToVal(t);
+  }
+  const result = {};
+  for (const row of adminRows) {
+    result[row.matter_id] = dbAdminRowToRec(row, tasksByMatter[row.matter_id]);
+  }
+  return result;
+}
+
+async function reEvalFlagsForMatterDB(matterId, rec, detectedType) {
+  const proceedingType = detectedType?.proceedingType;
+  const stage = rec.stage;
+  const earlyStages = ['PETITION_PREP', 'FILED'];
+  const { rows: flags } = await pool.query(
+    'SELECT id, type FROM flags WHERE matter_id=$1 AND resolved_at IS NULL',
+    [matterId]
+  );
+  let resolved = 0;
+  for (const flag of flags) {
+    let shouldResolve = false;
+    if (flag.type === 'MISSING_WILL_OR_TRUST' && proceedingType === 'intestate')
+      shouldResolve = true;
+    if (flag.type === 'MISSING_APPOINTMENT_DATE' && earlyStages.includes(stage))
+      shouldResolve = true;
+    if (shouldResolve) {
+      await pool.query('UPDATE flags SET resolved_at=NOW() WHERE id=$1', [flag.id]);
+      resolved++;
+    }
+  }
+  return resolved;
+}
+
 const STAGE_NORMALIZE = {
   'INTAKE':          'PETITION_PREP',
   'PETITION PREP':   'PETITION_PREP',
@@ -860,63 +988,18 @@ function normalizeStage(s) {
   return STAGE_NORMALIZE[s] || s;
 }
 
-function getOrInit(data, matterId) {
-  if (!data[matterId]) {
-    data[matterId] = {
-      stage: 'PETITION_PREP',
-      keyDates: {
-        dateOfDeath: null, appointmentDate: null, publicationDate: null,
-        firstPublicationDate: null, nextHearingDate: null, nextHearingDescription: null,
-      },
-      tasks: {}, taskAssignments: {}, staff: [], customNotes: '', matterTypeOverrides: {},
-    };
-  }
-  // Migrate old records
-  const rec = data[matterId];
-  rec.stage = normalizeStage(rec.stage);
-  if (!rec.keyDates) rec.keyDates = {};
-  if (!rec.taskAssignments) rec.taskAssignments = {};
-  if (!rec.staff) rec.staff = [];
-  if (rec.customNotes === undefined) rec.customNotes = rec.notes || '';
-  if (!rec.matterTypeOverrides) rec.matterTypeOverrides = {};
-  // Migrate boolean task statuses → string ('completed') or absent (pending)
-  for (const [k, v] of Object.entries(rec.tasks || {})) {
-    if (v === true) rec.tasks[k] = 'completed';
-    else if (v === false) delete rec.tasks[k];
-  }
-  return rec;
-}
-
 const ORDERED_ADMIN_STAGES = ['PETITION_PREP','FILED','APPOINTED','IN_ADMINISTRATION','CLOSING_PREP','CLOSED'];
 const STAGE_LABELS = {
   PETITION_PREP: 'Petition Prep', FILED: 'Filed', APPOINTED: 'Appointed',
   IN_ADMINISTRATION: 'In Administration', CLOSING_PREP: 'Closing Prep', CLOSED: 'Closed',
 };
 
-// Handles string statuses AND audit-trail objects { status, ... }
 function getTaskStatus(tasks, taskId) {
   const v = tasks[taskId];
   if (!v) return 'pending';
   if (typeof v === 'string') return v;
   if (v && typeof v === 'object' && v.status) return v.status;
   return 'pending';
-}
-
-// Auto-resolve flags that contradict confirmed matter type or stage
-function reEvalFlagsForMatter(matterId, rec, flags, detectedType) {
-  const proceedingType = detectedType?.proceedingType;
-  const stage = rec.stage;
-  const earlyStages = ['PETITION_PREP', 'FILED'];
-  const now = new Date().toISOString();
-  for (const flag of flags) {
-    if (flag.matterId !== matterId || flag.resolvedAt) continue;
-    let note = null;
-    if (flag.type === 'MISSING_WILL_OR_TRUST' && proceedingType === 'intestate')
-      note = 'Auto-resolved: matter confirmed as intestate administration';
-    if (flag.type === 'MISSING_APPOINTMENT_DATE' && earlyStages.includes(stage))
-      note = 'Auto-resolved: appointment date not expected at current stage';
-    if (note) { flag.resolvedAt = now; flag.resolveNote = note; }
-  }
 }
 
 // ── DV matters cache (5-minute TTL) ─────────────────────────────────────────
@@ -943,83 +1026,93 @@ async function getCachedAlerts(force = false) {
   if (!force && _alertsCache && Date.now() - _alertsCacheTime < ALERTS_CACHE_TTL_MS) {
     return _alertsCache;
   }
-  const matters   = await getCachedMatters();
-  const adminData = loadAdminData();
+  const [matters, adminData] = await Promise.all([getCachedMatters(), getAllAdminDataDB()]);
   _alertsCache     = await runDeadlineAlertAgent(matters, adminData);
   _alertsCacheTime = Date.now();
   return _alertsCache;
 }
 
-// ── Scanner cache (no in-memory cache; scan history read from disk) ──────────
 async function runAndSaveScan() {
-  const matters   = await getCachedMatters();
-  const adminData = loadAdminData();
+  const [matters, adminData] = await Promise.all([getCachedMatters(), getAllAdminDataDB()]);
   return runDocumentScannerAgent(matters, adminData);
 }
 
 // GET /api/admin/matter/:matterId — load admin record
-app.get('/api/admin/matter/:matterId', (req, res) => {
-  const data = loadAdminData();
-  res.json(getOrInit(data, req.params.matterId));
+app.get('/api/admin/matter/:matterId', async (req, res) => {
+  try {
+    res.json(await getOrInitDB(req.params.matterId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/admin/matter/:matterId/stage — update stage
-app.post('/api/admin/matter/:matterId/stage', (req, res) => {
-  const data = loadAdminData();
-  const rec  = getOrInit(data, req.params.matterId);
-  const oldStage = rec.stage;
-  const newStage = req.body.stage;
-  rec.stage = newStage;
-  saveAdminData(data);
-  logAuditEvent(req, 'STAGE_CHANGED', req.params.matterId, null,
-    `Stage changed from ${oldStage} to ${newStage}`, oldStage, newStage).catch(() => {});
-  res.json({ ok: true });
+app.post('/api/admin/matter/:matterId/stage', async (req, res) => {
+  try {
+    const rec      = await getOrInitDB(req.params.matterId);
+    const oldStage = rec.stage;
+    const newStage = req.body.stage;
+    rec.stage = newStage;
+    await saveAdminRecordDB(req.params.matterId, rec);
+    logAuditEvent(req, 'STAGE_CHANGED', req.params.matterId, null,
+      `Stage changed from ${oldStage} to ${newStage}`, oldStage, newStage).catch(() => {});
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/admin/matter/:matterId/dates — set / merge key dates
-app.post('/api/admin/matter/:matterId/dates', (req, res) => {
-  const data = loadAdminData();
-  const rec  = getOrInit(data, req.params.matterId);
-  Object.assign(rec.keyDates, req.body);
-  saveAdminData(data);
-  res.json({ ok: true });
+app.post('/api/admin/matter/:matterId/dates', async (req, res) => {
+  try {
+    const rec = await getOrInitDB(req.params.matterId);
+    Object.assign(rec.keyDates, req.body);
+    await saveAdminRecordDB(req.params.matterId, rec);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/admin/matter/:matterId/task/:taskId — set task status
-app.post('/api/admin/matter/:matterId/task/:taskId', (req, res) => {
-  const { matterId, taskId } = req.params;
-  const data = loadAdminData();
-  const rec  = getOrInit(data, matterId);
-  const prevStatus = rec.tasks[taskId] || 'pending';
-  let status = req.body.status;
-  if (!status) status = req.body.completed ? 'completed' : 'pending';
-  if (status === 'pending') delete rec.tasks[taskId];
-  else rec.tasks[taskId] = status;
-  saveAdminData(data);
-  logAuditEvent(req, 'TASK_UPDATED', matterId, null,
-    `Task ${taskId}: ${prevStatus} → ${status}`, prevStatus, status).catch(() => {});
-  res.json({ ok: true });
+app.post('/api/admin/matter/:matterId/task/:taskId', async (req, res) => {
+  try {
+    const { matterId, taskId } = req.params;
+    const rec        = await getOrInitDB(matterId);
+    const prevStatus = getTaskStatus(rec.tasks, taskId);
+    let status = req.body.status;
+    if (!status) status = req.body.completed ? 'completed' : 'pending';
+    if (status === 'pending') delete rec.tasks[taskId];
+    else rec.tasks[taskId] = status;
+    await saveAdminRecordDB(matterId, rec);
+    logAuditEvent(req, 'TASK_UPDATED', matterId, null,
+      `Task ${taskId}: ${prevStatus} → ${status}`, prevStatus, status).catch(() => {});
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/admin/matter/:matterId/deadlines — calculate deadlines from stored key dates
-app.get('/api/admin/matter/:matterId/deadlines', (req, res) => {
-  const data    = loadAdminData();
-  const rec     = getOrInit(data, req.params.matterId);
-  const state   = req.query.state || 'MA';
-  const hasTrust = req.query.hasTrust === 'true';
-  res.json(calculateDeadlines(rec.keyDates, state, { hasTrust }));
+app.get('/api/admin/matter/:matterId/deadlines', async (req, res) => {
+  try {
+    const rec      = await getOrInitDB(req.params.matterId);
+    const state    = req.query.state || 'MA';
+    const hasTrust = req.query.hasTrust === 'true';
+    res.json(calculateDeadlines(rec.keyDates, state, { hasTrust }));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/admin/matter/:matterId/type — detect matter type from DV + stored overrides
 app.get('/api/admin/matter/:matterId/type', async (req, res) => {
   try {
-    const [{ matter, contacts, assets }, documents] = await Promise.all([
-      fetchMatterData(req.params.matterId),
-      fetchDocuments(req.params.matterId),
+    const [[{ matter, contacts, assets }, documents], rec] = await Promise.all([
+      Promise.all([fetchMatterData(req.params.matterId), fetchDocuments(req.params.matterId)]),
+      getOrInitDB(req.params.matterId),
     ]);
-    const adminData = loadAdminData();
-    const overrides = adminData[req.params.matterId]?.matterTypeOverrides || {};
-    res.json(detectMatterType(matter, contacts, assets, overrides, documents));
+    res.json(detectMatterType(matter, contacts, assets, rec.matterTypeOverrides || {}, documents));
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message });
   }
@@ -1028,12 +1121,10 @@ app.get('/api/admin/matter/:matterId/type', async (req, res) => {
 // POST /api/admin/matter/:matterId/type — save overrides with confirmation when savedMatterType differs
 app.post('/api/admin/matter/:matterId/type', async (req, res) => {
   try {
-    const [{ matter, contacts, assets }, documents] = await Promise.all([
-      fetchMatterData(req.params.matterId),
-      fetchDocuments(req.params.matterId),
+    const [[{ matter, contacts, assets }, documents], rec] = await Promise.all([
+      Promise.all([fetchMatterData(req.params.matterId), fetchDocuments(req.params.matterId)]),
+      getOrInitDB(req.params.matterId),
     ]);
-    const adminData = loadAdminData();
-    const rec = getOrInit(adminData, req.params.matterId);
     if (!rec.matterTypeOverrides) rec.matterTypeOverrides = {};
 
     const isTestingMode = req.body._testingMode;
@@ -1044,7 +1135,7 @@ app.post('/api/admin/matter/:matterId/type', async (req, res) => {
     if (changes._clearOverrides) {
       rec.matterTypeOverrides = {};
       rec.pendingMatterTypeChange = null;
-      saveAdminData(adminData);
+      await saveAdminRecordDB(req.params.matterId, rec);
       return res.json(detectMatterType(matter, contacts, assets, {}, documents));
     }
     delete changes._clearOverrides;
@@ -1057,7 +1148,7 @@ app.post('/api/admin/matter/:matterId/type', async (req, res) => {
       );
       if (typeChanged) {
         rec.pendingMatterTypeChange = { overrides: changes, proposedAt: new Date().toISOString(), source };
-        saveAdminData(adminData);
+        await saveAdminRecordDB(req.params.matterId, rec);
         function typeLabel(pt, ht) {
           if (ht && pt === null)          return 'Trust Administration';
           if (ht && pt === 'testate')     return 'Probate + Trust';
@@ -1089,7 +1180,7 @@ app.post('/api/admin/matter/:matterId/type', async (req, res) => {
       savedAt: new Date().toISOString(), savedBy: source,
     };
     rec.pendingMatterTypeChange = null;
-    saveAdminData(adminData);
+    await saveAdminRecordDB(req.params.matterId, rec);
     res.json(detectedType);
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message });
@@ -1099,16 +1190,14 @@ app.post('/api/admin/matter/:matterId/type', async (req, res) => {
 // POST /api/admin/matter/:matterId/type/confirm — apply or reject a pending type change
 app.post('/api/admin/matter/:matterId/type/confirm', async (req, res) => {
   try {
-    const adminData = loadAdminData();
-    const rec = getOrInit(adminData, req.params.matterId);
-    const [{ matter, contacts, assets }, documents] = await Promise.all([
-      fetchMatterData(req.params.matterId),
-      fetchDocuments(req.params.matterId),
+    const [[{ matter, contacts, assets }, documents], rec] = await Promise.all([
+      Promise.all([fetchMatterData(req.params.matterId), fetchDocuments(req.params.matterId)]),
+      getOrInitDB(req.params.matterId),
     ]);
 
     if (!req.body.confirmed) {
       rec.pendingMatterTypeChange = null;
-      saveAdminData(adminData);
+      await saveAdminRecordDB(req.params.matterId, rec);
       return res.json(detectMatterType(matter, contacts, assets, rec.matterTypeOverrides || {}, documents));
     }
 
@@ -1127,17 +1216,12 @@ app.post('/api/admin/matter/:matterId/type/confirm', async (req, res) => {
       savedAt: new Date().toISOString(), savedBy: pending.source || 'manual',
     };
     rec.pendingMatterTypeChange = null;
-    saveAdminData(adminData);
+    await saveAdminRecordDB(req.params.matterId, rec);
 
     logAuditEvent(req, 'MATTER_TYPE_CHANGED', req.params.matterId, null,
       `Matter type confirmed: ${JSON.stringify(detectedType.proceedingType)}`).catch(() => {});
 
-    // Auto-resolve contradicted flags
-    try {
-      const flags = loadFlags();
-      reEvalFlagsForMatter(req.params.matterId, rec, flags, detectedType);
-      saveFlags(flags);
-    } catch {}
+    reEvalFlagsForMatterDB(req.params.matterId, rec, detectedType).catch(() => {});
 
     res.json(detectedType);
   } catch (err) {
@@ -1165,8 +1249,8 @@ app.get('/api/admin/matter/:matterId/tasks', async (req, res) => {
     ]);
     const conditions = deriveMatterConditions(matter, contacts, assets);
 
-    const adminData = loadAdminData();
-    const overrides = adminData[req.params.matterId]?.matterTypeOverrides || {};
+    const rec        = await getOrInitDB(req.params.matterId);
+    const overrides  = rec.matterTypeOverrides || {};
     const matterType = detectMatterType(matter, contacts, assets, overrides, documents);
 
     // Sync matterType overrides back into conditions so task condition filters are consistent
@@ -1216,8 +1300,7 @@ app.get('/api/admin/matter/:matterId/tasks/staged', async (req, res) => {
       fetchDocuments(req.params.matterId),
     ]);
     const conditions = deriveMatterConditions(matter, contacts, assets);
-    const adminData  = loadAdminData();
-    const rec        = getOrInit(adminData, req.params.matterId);
+    const rec        = await getOrInitDB(req.params.matterId);
     const overrides  = rec.matterTypeOverrides || {};
     const matterType = detectMatterType(matter, contacts, assets, overrides, documents);
     if (overrides.hasTrust !== undefined)     conditions.hasTrust   = matterType.hasTrust;
@@ -1277,19 +1360,13 @@ app.get('/api/admin/matter/:matterId/tasks/staged', async (req, res) => {
 // POST /api/admin/matter/:matterId/flags/reeval — re-evaluate flags for matter
 app.post('/api/admin/matter/:matterId/flags/reeval', async (req, res) => {
   try {
-    const adminData = loadAdminData();
-    const rec = getOrInit(adminData, req.params.matterId);
-    const [{ matter, contacts, assets }, documents] = await Promise.all([
-      fetchMatterData(req.params.matterId),
-      fetchDocuments(req.params.matterId),
+    const [[{ matter, contacts, assets }, documents], rec] = await Promise.all([
+      Promise.all([fetchMatterData(req.params.matterId), fetchDocuments(req.params.matterId)]),
+      getOrInitDB(req.params.matterId),
     ]);
     const detectedType = detectMatterType(matter, contacts, assets, rec.matterTypeOverrides || {}, documents);
-    const flags = loadFlags();
-    const openBefore = flags.filter(f => f.matterId === req.params.matterId && !f.resolvedAt).length;
-    reEvalFlagsForMatter(req.params.matterId, rec, flags, detectedType);
-    saveFlags(flags);
-    const openAfter = flags.filter(f => f.matterId === req.params.matterId && !f.resolvedAt).length;
-    res.json({ ok: true, resolved: openBefore - openAfter });
+    const resolved     = await reEvalFlagsForMatterDB(req.params.matterId, rec, detectedType);
+    res.json({ ok: true, resolved });
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.message });
   }
@@ -1312,8 +1389,7 @@ app.post('/api/admin/matter/:matterId/letters/:letterId/generate', async (req, r
       contacts, matter.contact_main, matter.contact_representative
     );
 
-    const adminData = loadAdminData()[matterId] || { keyDates: {}, tasks: {} };
-    // Attach deadlines so templates can reference them
+    const adminData = await getOrInitDB(matterId);
     adminData.deadlines = calculateDeadlines(adminData.keyDates, req.body.state || 'MA');
 
     const matterData = {
@@ -1336,57 +1412,60 @@ app.post('/api/admin/matter/:matterId/letters/:letterId/generate', async (req, r
 });
 
 // POST /api/admin/matter/:matterId/advance — full status-rule stage advance
-app.post('/api/admin/matter/:matterId/advance', (req, res) => {
-  const { fromStage, toStage } = req.body;
-  if (!toStage) return res.status(400).json({ error: 'toStage is required' });
+app.post('/api/admin/matter/:matterId/advance', async (req, res) => {
+  try {
+    const { fromStage, toStage } = req.body;
+    if (!toStage) return res.status(400).json({ error: 'toStage is required' });
 
-  const data    = loadAdminData();
-  const rec     = getOrInit(data, req.params.matterId);
-  const now     = new Date().toISOString();
-  const fromIdx = ORDERED_ADMIN_STAGES.indexOf(fromStage);
-  const toIdx   = ORDERED_ADMIN_STAGES.indexOf(toStage);
-  let openToNACount = 0;
+    const rec     = await getOrInitDB(req.params.matterId);
+    const now     = new Date().toISOString();
+    const fromIdx = ORDERED_ADMIN_STAGES.indexOf(fromStage);
+    const toIdx   = ORDERED_ADMIN_STAGES.indexOf(toStage);
+    let openToNACount = 0;
 
-  // OLD stage: pending → warning, open → na
-  if (fromStage && fromIdx >= 0) {
-    for (const tid of (STAGE_TASK_MAPPING[fromStage] || [])) {
-      const s = getTaskStatus(rec.tasks, tid);
-      if (s === 'pending') {
-        rec.tasks[tid] = { status: 'warning', previousStatus: 'pending', setDate: now, setBy: 'system:stage_advance',
-          notes: `Skipped on advance from ${fromStage} to ${toStage}` };
-      } else if (s === 'open') {
-        rec.tasks[tid] = { status: 'na', previousStatus: 'open', setDate: now, setBy: 'system:stage_advance',
-          notes: `N/A on advance from ${fromStage} to ${toStage}` };
-        openToNACount++;
+    if (fromStage && fromIdx >= 0) {
+      for (const tid of (STAGE_TASK_MAPPING[fromStage] || [])) {
+        const s = getTaskStatus(rec.tasks, tid);
+        if (s === 'pending') {
+          rec.tasks[tid] = { status: 'warning', previousStatus: 'pending', setDate: now, setBy: 'system:stage_advance',
+            notes: `Skipped on advance from ${fromStage} to ${toStage}` };
+        } else if (s === 'open') {
+          rec.tasks[tid] = { status: 'na', previousStatus: 'open', setDate: now, setBy: 'system:stage_advance',
+            notes: `N/A on advance from ${fromStage} to ${toStage}` };
+          openToNACount++;
+        }
       }
     }
-  }
 
-  // NEW stage: all tasks → pending (delete so absent = pending)
-  if (toIdx >= 0) {
-    for (const tid of (STAGE_TASK_MAPPING[toStage] || [])) delete rec.tasks[tid];
-  }
-
-  // Future stages (after toStage): absent/pending tasks → 'open'
-  for (let i = toIdx + 1; i < ORDERED_ADMIN_STAGES.length; i++) {
-    for (const tid of (STAGE_TASK_MAPPING[ORDERED_ADMIN_STAGES[i]] || [])) {
-      if (getTaskStatus(rec.tasks, tid) === 'pending') rec.tasks[tid] = 'open';
+    if (toIdx >= 0) {
+      for (const tid of (STAGE_TASK_MAPPING[toStage] || [])) delete rec.tasks[tid];
     }
-  }
 
-  rec.stage = toStage;
-  saveAdminData(data);
-  res.json({ ok: true, openToNACount });
+    for (let i = toIdx + 1; i < ORDERED_ADMIN_STAGES.length; i++) {
+      for (const tid of (STAGE_TASK_MAPPING[ORDERED_ADMIN_STAGES[i]] || [])) {
+        if (getTaskStatus(rec.tasks, tid) === 'pending') rec.tasks[tid] = 'open';
+      }
+    }
+
+    rec.stage = toStage;
+    await saveAdminRecordDB(req.params.matterId, rec);
+    res.json({ ok: true, openToNACount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/admin/matter/:matterId/hearing — save hearing date + description into keyDates
-app.post('/api/admin/matter/:matterId/hearing', (req, res) => {
-  const data = loadAdminData();
-  const rec  = getOrInit(data, req.params.matterId);
-  rec.keyDates.nextHearingDate        = req.body.nextHearingDate        || null;
-  rec.keyDates.nextHearingDescription = req.body.nextHearingDescription || null;
-  saveAdminData(data);
-  res.json({ ok: true });
+app.post('/api/admin/matter/:matterId/hearing', async (req, res) => {
+  try {
+    const rec = await getOrInitDB(req.params.matterId);
+    rec.keyDates.nextHearingDate        = req.body.nextHearingDate        || null;
+    rec.keyDates.nextHearingDescription = req.body.nextHearingDescription || null;
+    await saveAdminRecordDB(req.params.matterId, rec);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/alerts — run deadline alert agent (cached 1 hour)
@@ -1399,27 +1478,27 @@ app.get('/api/alerts', async (req, res) => {
 });
 
 // GET /api/alerts/history — raw alert history
-app.get('/api/alerts/history', (req, res) => {
-  const histFile = PATHS.ALERT_HISTORY_FILE;
-  try { res.json(JSON.parse(fsSync.readFileSync(histFile, 'utf8'))); }
-  catch { res.json({}); }
+app.get('/api/alerts/history', async (req, res) => {
+  try {
+    res.json(await loadAlertHistory());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/alerts/:alertId/dismiss — dismiss alert for this cycle
-app.post('/api/alerts/:alertId/dismiss', (req, res) => {
-  const histFile = PATHS.ALERT_HISTORY_FILE;
+app.post('/api/alerts/:alertId/dismiss', async (req, res) => {
   try {
-    let hist = {};
-    try { hist = JSON.parse(fsSync.readFileSync(histFile, 'utf8')); } catch {}
+    const hist    = await loadAlertHistory();
     const alertId = decodeURIComponent(req.params.alertId);
     hist[alertId] = {
       ...(hist[alertId] || { firstAlertDate: new Date().toISOString(), alertCount: 0, severity: 'unknown' }),
       lastAlertDate: new Date().toISOString(),
-      dismissed: true,
-      dismissedAt: new Date().toISOString(),
+      dismissed:     true,
+      dismissedAt:   new Date().toISOString(),
     };
-    fsSync.writeFileSync(histFile, JSON.stringify(hist, null, 2));
-    _alertsCache = null; // bust cache so next load reflects dismissal
+    await saveAlertHistory(hist);
+    _alertsCache = null;
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1427,30 +1506,34 @@ app.post('/api/alerts/:alertId/dismiss', (req, res) => {
 });
 
 // GET /api/ai-settings — load AI feature toggles
-app.get('/api/ai-settings', (req, res) => {
-  const settings = loadAiSettings();
-  res.json({
-    ...settings,
-    AI_EXTRACTION_AVAILABLE: !!process.env.ANTHROPIC_API_KEY,
-  });
+app.get('/api/ai-settings', async (req, res) => {
+  try {
+    const settings = await loadAiSettings();
+    res.json({ ...settings, AI_EXTRACTION_AVAILABLE: !!process.env.ANTHROPIC_API_KEY });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/ai-settings — update a toggle
-app.post('/api/ai-settings', (req, res) => {
-  const current  = loadAiSettings();
-  const updated  = { ...current, ...req.body };
-  // Strip unknown keys
-  const safe = {};
-  for (const k of Object.keys(AI_SETTINGS_DEFAULTS)) safe[k] = !!updated[k];
-  saveAiSettings(safe);
-  res.json({ ok: true, settings: safe });
+app.post('/api/ai-settings', async (req, res) => {
+  try {
+    const current = await loadAiSettings();
+    const updated = { ...current, ...req.body };
+    const safe    = {};
+    for (const k of Object.keys(AI_SETTINGS_DEFAULTS)) safe[k] = !!updated[k];
+    await saveAiSettings(safe);
+    res.json({ ok: true, settings: safe });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/alerts/run — force-run deadline alert agent (honours AI setting)
 app.get('/api/alerts/run', async (req, res) => {
-  const settings = loadAiSettings();
-  if (!settings.AI_DEADLINE_ALERTS) return res.json({ skipped: true, reason: 'AI_DEADLINE_ALERTS disabled' });
   try {
+    const settings = await loadAiSettings();
+    if (!settings.AI_DEADLINE_ALERTS) return res.json({ skipped: true, reason: 'AI_DEADLINE_ALERTS disabled' });
     res.json(await getCachedAlerts(true));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1459,9 +1542,9 @@ app.get('/api/alerts/run', async (req, res) => {
 
 // GET /api/scan/run — force-run document scanner (honours AI setting)
 app.get('/api/scan/run', async (req, res) => {
-  const settings = loadAiSettings();
-  if (!settings.AI_DOCUMENT_SCANNER) return res.json({ skipped: true, reason: 'AI_DOCUMENT_SCANNER disabled' });
   try {
+    const settings = await loadAiSettings();
+    if (!settings.AI_DOCUMENT_SCANNER) return res.json({ skipped: true, reason: 'AI_DOCUMENT_SCANNER disabled' });
     res.json(await runAndSaveScan());
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1469,51 +1552,84 @@ app.get('/api/scan/run', async (req, res) => {
 });
 
 // GET /api/scan/history — last scan summary
-app.get('/api/scan/history', (req, res) => {
-  res.json(loadScanHistory() || { lastRun: null, openFlags: 0, highFlags: 0, docsScanned: 0 });
+app.get('/api/scan/history', async (req, res) => {
+  try {
+    res.json(await loadScanHistory() || { lastRun: null, openFlags: 0, highFlags: 0, docsScanned: 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/flags — all flags
-app.get('/api/flags', (req, res) => {
-  const flags = loadFlags();
-  res.json({ flags });
+app.get('/api/flags', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM flags ORDER BY raised_at DESC'
+    );
+    const flags = rows.map(r => ({
+      id:             r.id,
+      matterId:       r.matter_id,
+      matterName:     r.matter_name,
+      type:           r.type,
+      severity:       r.severity,
+      message:        r.message,
+      raisedAt:       toISO(r.raised_at),
+      lastSeenAt:     toISO(r.last_seen_at),
+      acknowledgedAt: toISO(r.acknowledged_at),
+      resolvedAt:     toISO(r.resolved_at),
+    }));
+    res.json({ flags });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/flags/:id/acknowledge
-app.post('/api/flags/:id/acknowledge', (req, res) => {
-  const flags = loadFlags();
-  const flag  = flags.find(f => f.id === req.params.id);
-  if (!flag) return res.status(404).json({ error: 'Flag not found' });
-  flag.acknowledgedAt = new Date().toISOString();
-  saveFlags(flags);
-  res.json({ ok: true });
+app.post('/api/flags/:id/acknowledge', async (req, res) => {
+  try {
+    const { rowCount } = await pool.query(
+      'UPDATE flags SET acknowledged_at=NOW() WHERE id=$1',
+      [req.params.id]
+    );
+    if (!rowCount) return res.status(404).json({ error: 'Flag not found' });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/flags/:id/resolve
-app.post('/api/flags/:id/resolve', (req, res) => {
-  const flags = loadFlags();
-  const flag  = flags.find(f => f.id === req.params.id);
-  if (!flag) return res.status(404).json({ error: 'Flag not found' });
-  flag.resolvedAt = new Date().toISOString();
-  saveFlags(flags);
-  logAuditEvent(req, 'FLAG_RESOLVED', flag.matterId, flag.matterName,
-    `Flag resolved: ${flag.message || flag.type}`).catch(() => {});
-  res.json({ ok: true });
+app.post('/api/flags/:id/resolve', async (req, res) => {
+  try {
+    const { rows, rowCount } = await pool.query(
+      'UPDATE flags SET resolved_at=NOW() WHERE id=$1 RETURNING matter_id, matter_name, message, type',
+      [req.params.id]
+    );
+    if (!rowCount) return res.status(404).json({ error: 'Flag not found' });
+    const f = rows[0];
+    logAuditEvent(req, 'FLAG_RESOLVED', f.matter_id, f.matter_name,
+      `Flag resolved: ${f.message || f.type}`).catch(() => {});
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // GET /api/admin/kanban — return kanban card data for all DV matters
 app.get('/api/admin/kanban', async (req, res) => {
   try {
-    const matters = await getCachedMatters(req.query.refresh === '1');
+    const [matters, adminData] = await Promise.all([
+      getCachedMatters(req.query.refresh === '1'),
+      getAllAdminDataDB(),
+    ]);
     const allTasks = getAllTasks();
     const taskById = Object.fromEntries(allTasks.map(t => [t.id, t]));
-    const adminData = loadAdminData();
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const cards = matters.map(matter => {
-      const rec = adminData[matter.id] ? getOrInit(adminData, matter.id) : {
+      const rec = adminData[matter.id] || {
         stage: 'PETITION_PREP', keyDates: {}, tasks: {}, staff: [], customNotes: '',
       };
       const matterCategory = categorizeMatter(matter.quest_internal_type);
@@ -1592,56 +1708,64 @@ app.get('/api/admin/kanban', async (req, res) => {
 });
 
 // ── Audit log ─────────────────────────────────────────────────────────────────
-app.get('/api/audit-log', requireAuth, requireRole('attorney', 'firm_admin'), (req, res) => {
-  const { matterId, userId, action, limit, offset } = req.query;
-  const events = getAuditLog({
-    matterId, userId, action,
-    limit:  parseInt(limit)  || 50,
-    offset: parseInt(offset) || 0,
-  });
-  const total = getAuditLogTotal({ matterId, userId, action });
-  res.json({ events, total });
+app.get('/api/audit-log', requireAuth, requireRole('attorney', 'firm_admin'), async (req, res) => {
+  try {
+    const { matterId, userId, action, limit, offset } = req.query;
+    const [events, total] = await Promise.all([
+      getAuditLog({
+        matterId, userId, action,
+        limit:  parseInt(limit)  || 50,
+        offset: parseInt(offset) || 0,
+      }),
+      getAuditLogTotal({ matterId, userId, action }),
+    ]);
+    res.json({ events, total });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`ri-probate-app listening on http://localhost:${PORT}`);
-});
-
-// ── Scheduled agents ─────────────────────────────────────────────────────────
 const schedule = require('node-schedule');
 
-// Initial alert scan — 5s after startup
-setTimeout(async () => {
-  const settings = loadAiSettings();
-  if (!settings.AI_DEADLINE_ALERTS) return;
-  console.log('[AlertAgent] Running initial deadline scan…');
-  try { await getCachedAlerts(true); }
-  catch (err) { console.error('[AlertAgent] Initial scan error:', err.message); }
-}, 5000);
+(async () => {
+  await initDatabase();
 
-// Initial document scan — 10s after startup
-setTimeout(async () => {
-  const settings = loadAiSettings();
-  if (!settings.AI_DOCUMENT_SCANNER) return;
-  console.log('[ScanAgent] Running initial document scan…');
-  try { await runAndSaveScan(); }
-  catch (err) { console.error('[ScanAgent] Initial scan error:', err.message); }
-}, 10000);
+  app.listen(PORT, () => {
+    console.log(`ri-probate-app listening on http://localhost:${PORT}`);
+  });
 
-// Daily at 8:00 AM — deadline alerts
-schedule.scheduleJob('0 8 * * *', async () => {
-  const settings = loadAiSettings();
-  if (!settings.AI_DEADLINE_ALERTS) return;
-  console.log('[AlertAgent] Running scheduled daily deadline scan…');
-  try { await getCachedAlerts(true); }
-  catch (err) { console.error('[AlertAgent] Scheduled scan error:', err.message); }
-});
+  setTimeout(async () => {
+    const settings = await loadAiSettings().catch(() => AI_SETTINGS_DEFAULTS);
+    if (!settings.AI_DEADLINE_ALERTS) return;
+    console.log('[AlertAgent] Running initial deadline scan…');
+    try { await getCachedAlerts(true); }
+    catch (err) { console.error('[AlertAgent] Initial scan error:', err.message); }
+  }, 5000);
 
-// Daily at 8:15 AM — document scanner
-schedule.scheduleJob('15 8 * * *', async () => {
-  const settings = loadAiSettings();
-  if (!settings.AI_DOCUMENT_SCANNER) return;
-  console.log('[ScanAgent] Running scheduled daily document scan…');
-  try { await runAndSaveScan(); }
-  catch (err) { console.error('[ScanAgent] Scheduled scan error:', err.message); }
+  setTimeout(async () => {
+    const settings = await loadAiSettings().catch(() => AI_SETTINGS_DEFAULTS);
+    if (!settings.AI_DOCUMENT_SCANNER) return;
+    console.log('[ScanAgent] Running initial document scan…');
+    try { await runAndSaveScan(); }
+    catch (err) { console.error('[ScanAgent] Initial scan error:', err.message); }
+  }, 10000);
+
+  schedule.scheduleJob('0 8 * * *', async () => {
+    const settings = await loadAiSettings().catch(() => AI_SETTINGS_DEFAULTS);
+    if (!settings.AI_DEADLINE_ALERTS) return;
+    console.log('[AlertAgent] Running scheduled daily deadline scan…');
+    try { await getCachedAlerts(true); }
+    catch (err) { console.error('[AlertAgent] Scheduled scan error:', err.message); }
+  });
+
+  schedule.scheduleJob('15 8 * * *', async () => {
+    const settings = await loadAiSettings().catch(() => AI_SETTINGS_DEFAULTS);
+    if (!settings.AI_DOCUMENT_SCANNER) return;
+    console.log('[ScanAgent] Running scheduled daily document scan…');
+    try { await runAndSaveScan(); }
+    catch (err) { console.error('[ScanAgent] Scheduled scan error:', err.message); }
+  });
+})().catch(err => {
+  console.error('[Startup] Fatal error:', err);
+  process.exit(1);
 });

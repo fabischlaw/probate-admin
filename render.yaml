@@ -20,6 +20,8 @@ services:
         value: /opt/render/project/.cache/puppeteer
       - key: PUPPETEER_EXECUTABLE_PATH
         value: /opt/render/project/.cache/puppeteer/chrome/linux-147.0.7727.57/chrome-linux64/chrome
+      - key: DATABASE_URL
+        sync: false
     disk:
       name: probate-data
       mountPath: /var/data

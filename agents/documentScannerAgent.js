@@ -1,20 +1,13 @@
 'use strict';
 
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
-const fs    = require('fs');
-const path  = require('path');
 const axios = require('axios');
 const { getAuthHeaders }   = require('../auth');
 const { categorizeMatter } = require('../admin/detectMatterType');
-const PATHS = require('../config/paths');
+const pool = require('../config/database');
 
-const DV_BASE      = 'https://api.decisionvault.com/v1';
-const ADMIN_FILE   = PATHS.ADMIN_FILE;
-const FLAGS_FILE   = PATHS.FLAGS_FILE;
-const HISTORY_FILE = PATHS.SCAN_HISTORY_FILE;
+const DV_BASE = 'https://api.decisionvault.com/v1';
 
-// ── Document classifiers ─────────────────────────────────────────────────────
-// Each entry: array of keyword fragments matched against doc label + filename (lowercase)
 const DOCUMENT_CLASSIFIERS = {
   LETTERS_OF_AUTHORITY: [
     'letters of authority', 'letters testamentary', 'letters administration',
@@ -62,29 +55,63 @@ function classifyDocument(doc) {
   return null;
 }
 
-function loadAdminData() {
-  try { return JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf8')); }
-  catch { return {}; }
+async function loadAdminDataDB() {
+  const { rows } = await pool.query(
+    'SELECT matter_id, stage, key_dates, matter_type_overrides, saved_matter_type FROM matter_admin'
+  );
+  const result = {};
+  for (const row of rows) {
+    result[row.matter_id] = {
+      stage:               row.stage,
+      keyDates:            row.key_dates            || {},
+      matterTypeOverrides: row.matter_type_overrides || {},
+      savedMatterType:     row.saved_matter_type,
+    };
+  }
+  return result;
 }
 
-function saveAdminData(data) {
-  fs.mkdirSync(path.dirname(ADMIN_FILE), { recursive: true });
-  fs.writeFileSync(ADMIN_FILE, JSON.stringify(data, null, 2));
+async function updateMatterKeyDates(matterId, keyDates) {
+  await pool.query(
+    `INSERT INTO matter_admin (matter_id, key_dates)
+     VALUES ($1, $2)
+     ON CONFLICT (matter_id) DO UPDATE SET key_dates=$2, updated_at=NOW()`,
+    [matterId, JSON.stringify(keyDates)]
+  );
 }
 
-function loadFlags() {
-  try { return JSON.parse(fs.readFileSync(FLAGS_FILE, 'utf8')); }
-  catch { return []; }
+async function saveScanHistory(data) {
+  await pool.query(
+    `INSERT INTO settings (key, value) VALUES ('scanHistory', $1)
+     ON CONFLICT (key) DO UPDATE SET value=$1, updated_at=NOW()`,
+    [JSON.stringify(data)]
+  );
 }
 
-function saveFlags(flags) {
-  fs.mkdirSync(path.dirname(FLAGS_FILE), { recursive: true });
-  fs.writeFileSync(FLAGS_FILE, JSON.stringify(flags, null, 2));
+// Returns true if a new flag was inserted
+async function raiseFlag({ matterId, matterName, type, severity, message }) {
+  const { rows } = await pool.query(
+    'SELECT id FROM flags WHERE matter_id=$1 AND type=$2 AND resolved_at IS NULL',
+    [matterId, type]
+  );
+  if (rows.length > 0) {
+    await pool.query('UPDATE flags SET last_seen_at=NOW() WHERE id=$1', [rows[0].id]);
+    return false;
+  }
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  await pool.query(
+    `INSERT INTO flags (id, matter_id, matter_name, type, severity, message, raised_at, last_seen_at)
+     VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW())`,
+    [id, matterId, matterName, type, severity, message]
+  );
+  return true;
 }
 
-function saveHistory(data) {
-  fs.mkdirSync(path.dirname(HISTORY_FILE), { recursive: true });
-  fs.writeFileSync(HISTORY_FILE, JSON.stringify(data, null, 2));
+async function resolveFlag(matterId, type) {
+  await pool.query(
+    'UPDATE flags SET resolved_at=NOW() WHERE matter_id=$1 AND type=$2 AND resolved_at IS NULL',
+    [matterId, type]
+  );
 }
 
 function extractDecedentName(matterName) {
@@ -95,61 +122,25 @@ function extractDecedentName(matterName) {
 const APPOINTED_STAGES = new Set(['APPOINTED', 'IN_ADMINISTRATION', 'CLOSING_PREP', 'CLOSED']);
 const FILED_STAGES     = new Set(['FILED', 'APPOINTED', 'IN_ADMINISTRATION', 'CLOSING_PREP', 'CLOSED']);
 
-function shouldRaiseFlag(flagType, matterAdmin, matterConditions = {}) {
-  const stage         = matterAdmin.stage || 'PETITION_PREP';
-  const savedType     = matterAdmin.savedMatterType || matterAdmin.matterTypeOverrides || {};
+function shouldRaiseFlag(flagType, matterAdmin) {
+  const stage          = matterAdmin.stage || 'PETITION_PREP';
+  const savedType      = matterAdmin.savedMatterType || matterAdmin.matterTypeOverrides || {};
   const proceedingType = savedType.proceedingType;
   const hasTrust       = !!savedType.hasTrust;
 
   switch (flagType) {
-    case 'MISSING_WILL_OR_TRUST':
-      // Never flag for confirmed intestate
-      if (proceedingType === 'intestate') return false;
-      return true;
-
-    case 'MISSING_APPOINTMENT_DATE':
-      // Only flag in APPOINTED stage or later
-      return APPOINTED_STAGES.has(stage);
-
-    case 'MISSING_PUBLICATION_DATE':
-      // Only flag in FILED stage or later
-      return FILED_STAGES.has(stage);
-
-    case 'MISSING_DEATH_CERTIFICATE':
-      // Always relevant
-      return true;
-
-    case 'MASSHEALTH':
-      return true;
-
-    case 'MISSING_REAL_ESTATE_DOCS':
-      return !!matterConditions.hasRealEstate;
-
-    case 'UNEXPECTED_TRUST_DOCUMENT':
-      // Flag only if trust was NOT expected
-      return !hasTrust;
-
-    case 'CREDITOR_CLAIM':
-    case 'IRS_CORRESPONDENCE':
-    case 'COURT_ORDER':
-      return true;
-
-    default:
-      return true;
+    case 'MISSING_WILL_OR_TRUST':      return proceedingType !== 'intestate';
+    case 'MISSING_APPOINTMENT_DATE':   return APPOINTED_STAGES.has(stage);
+    case 'MISSING_PUBLICATION_DATE':   return FILED_STAGES.has(stage);
+    case 'UNEXPECTED_TRUST_DOCUMENT':  return !hasTrust;
+    default:                           return true;
   }
 }
 
-function generateId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-// ── Gmail placeholder ────────────────────────────────────────────────────────
 async function searchGmailForMatter(/* matterName, decedentName */) {
-  // Gmail integration not yet wired — returns empty
   return [];
 }
 
-// ── DV helpers ───────────────────────────────────────────────────────────────
 async function fetchMatters() {
   const headers = await getAuthHeaders();
   const res = await axios.get(`${DV_BASE}/matters`, { headers });
@@ -167,50 +158,21 @@ async function fetchMatterDocuments(matterId) {
   }
 }
 
-// ── Flag helpers ──────────────────────────────────────────────────────────────
-function raiseFlag(flags, { matterId, matterName, type, severity, message }) {
-  // Don't duplicate open flags of the same type for the same matter
-  const existing = flags.find(
-    f => f.matterId === matterId && f.type === type && !f.resolvedAt
-  );
-  if (existing) {
-    existing.lastSeenAt = new Date().toISOString();
-    return;
-  }
-  flags.push({
-    id:          generateId(),
-    matterId,
-    matterName,
-    type,
-    severity,
-    message,
-    raisedAt:    new Date().toISOString(),
-    lastSeenAt:  new Date().toISOString(),
-    acknowledgedAt: null,
-    resolvedAt:  null,
-  });
-}
-
-function resolveFlag(flags, matterId, type) {
-  const flag = flags.find(f => f.matterId === matterId && f.type === type && !f.resolvedAt);
-  if (flag) flag.resolvedAt = new Date().toISOString();
-}
-
-// ── Main agent ───────────────────────────────────────────────────────────────
 async function runDocumentScannerAgent(mattersArg, adminDataArg) {
-  const adminData = adminDataArg || loadAdminData();
+  const adminData = adminDataArg || await loadAdminDataDB();
   const matters   = mattersArg   || await fetchMatters();
 
-  const flags = loadFlags();
-  const now   = new Date().toISOString();
+  const { rows: countRows } = await pool.query(
+    "SELECT COUNT(*) FROM flags WHERE resolved_at IS NULL"
+  );
+  const prevFlagCount = parseInt(countRows[0].count);
 
+  const now         = new Date().toISOString();
   const scanResults = [];
   const errors      = [];
-
-  let docsScanned     = 0;
-  let autoPopulated   = 0;
-  let flagsRaised     = 0;
-  const prevFlagCount = flags.filter(f => !f.resolvedAt).length;
+  let docsScanned   = 0;
+  let autoPopulated = 0;
+  let flagsRaised   = 0;
 
   for (const matter of matters) {
     const category = categorizeMatter(matter.quest_internal_type);
@@ -218,9 +180,8 @@ async function runDocumentScannerAgent(mattersArg, adminDataArg) {
 
     const rec = adminData[matter.id];
     if (rec?.stage === 'CLOSED') {
-      // Resolve any lingering flags for closed matters
       for (const ft of ['MISSING_APPOINTMENT_DATE','MISSING_DEATH_CERTIFICATE','MISSING_WILL_OR_TRUST','UNEXPECTED_TRUST_DOCUMENT','MISSING_PUBLICATION_DATE']) {
-        resolveFlag(flags, matter.id, ft);
+        await resolveFlag(matter.id, ft);
       }
       continue;
     }
@@ -241,7 +202,7 @@ async function runDocumentScannerAgent(mattersArg, adminDataArg) {
     const gmailDocs = await searchGmailForMatter(matterName, decedentName);
     const allDocs   = [...docs, ...gmailDocs];
 
-    const found = new Set();
+    const found          = new Set();
     const matterFindings = [];
 
     for (const doc of allDocs) {
@@ -251,75 +212,59 @@ async function runDocumentScannerAgent(mattersArg, adminDataArg) {
         matterFindings.push({ docType, filename: doc.filename || '(unnamed)', docId: doc.id });
       }
 
-      // Auto-populate: appointmentDate from LETTERS_OF_AUTHORITY
       if (docType === 'LETTERS_OF_AUTHORITY' && !keyDates.appointmentDate) {
         const issued = doc.created_at || doc.uploaded_at || null;
         if (issued) {
-          if (!adminData[matter.id]) adminData[matter.id] = { keyDates: {}, tasks: {}, stage: 'PETITION_PREP' };
-          adminData[matter.id].keyDates = adminData[matter.id].keyDates || {};
-          adminData[matter.id].keyDates.appointmentDate = issued.slice(0, 10);
+          const newDate = issued.slice(0, 10);
+          keyDates.appointmentDate = newDate;
+          await updateMatterKeyDates(matter.id, keyDates);
           autoPopulated++;
-          matterFindings.push({ action: 'AUTO_POPULATED', field: 'appointmentDate', value: issued.slice(0, 10) });
-          resolveFlag(flags, matter.id, 'MISSING_APPOINTMENT_DATE');
+          matterFindings.push({ action: 'AUTO_POPULATED', field: 'appointmentDate', value: newDate });
+          await resolveFlag(matter.id, 'MISSING_APPOINTMENT_DATE');
         }
       }
 
-      // Auto-populate: DOD from DEATH_CERTIFICATE (contact date_of_death takes priority, this is fallback)
       if (docType === 'DEATH_CERTIFICATE' && !keyDates.dateOfDeath) {
-        const issued = doc.created_at || null;
-        if (issued) {
-          if (!adminData[matter.id]) adminData[matter.id] = { keyDates: {}, tasks: {}, stage: 'PETITION_PREP' };
-          adminData[matter.id].keyDates = adminData[matter.id].keyDates || {};
-          // Only set if clearly missing — don't overwrite with upload date (too unreliable)
-          // Mark as a finding but don't auto-populate DOD (DV contact field is authoritative)
-          matterFindings.push({ action: 'NOTED', field: 'dateOfDeath', note: 'Death certificate present; verify DOD in key dates' });
-        }
+        matterFindings.push({ action: 'NOTED', field: 'dateOfDeath', note: 'Death certificate present; verify DOD in key dates' });
       }
     }
 
-    // ── Raise/resolve flags (stage and matter-type aware) ────────────────────
+    const matterAdmin = rec || { stage: 'PETITION_PREP' };
 
-    const matterAdmin  = rec || { stage: 'PETITION_PREP' };
-    const matterConds  = {}; // DV-derived conditions not available in scanner; safe default
-
-    // ── Helper: raise flag if appropriate, resolve if not ──────────────────
-    function checkFlag(flagType, condition, severity, message) {
-      if (!condition) { resolveFlag(flags, matter.id, flagType); return; }
-      if (shouldRaiseFlag(flagType, matterAdmin, matterConds)) {
-        raiseFlag(flags, { matterId: matter.id, matterName: decedentName, type: flagType, severity, message });
-        flagsRaised++;
+    async function checkFlag(flagType, condition, severity, message) {
+      if (!condition) { await resolveFlag(matter.id, flagType); return; }
+      if (shouldRaiseFlag(flagType, matterAdmin)) {
+        const isNew = await raiseFlag({ matterId: matter.id, matterName: decedentName, type: flagType, severity, message });
+        if (isNew) flagsRaised++;
       } else {
-        resolveFlag(flags, matter.id, flagType); // stale — no longer applicable
+        await resolveFlag(matter.id, flagType);
       }
     }
 
-    // Appointment date: only flag in APPOINTED+ stages
-    checkFlag(
+    await checkFlag(
       'MISSING_APPOINTMENT_DATE',
       !keyDates.appointmentDate && !found.has('LETTERS_OF_AUTHORITY'),
       'high',
       `No Letters of Authority found and appointment date not set for ${decedentName}.`
     );
 
-    // Death certificate: always relevant
-    checkFlag(
+    await checkFlag(
       'MISSING_DEATH_CERTIFICATE',
       !found.has('DEATH_CERTIFICATE'),
       'medium',
       `No death certificate document found for ${decedentName}.`
     );
 
-    // Missing will/trust: skip if matter confirmed intestate
     const needsWillDoc = (category === 'probate' || category === 'trust') && !found.has('WILL') && !found.has('TRUST');
-    checkFlag(
+    await checkFlag(
       'MISSING_WILL_OR_TRUST',
       needsWillDoc,
       'medium',
       `No will or trust document found for ${decedentName}.`
     );
-    // Unexpected trust document
+
     if (found.has('TRUST')) {
-      checkFlag(
+      await checkFlag(
         'UNEXPECTED_TRUST_DOCUMENT',
         true,
         'medium',
@@ -338,36 +283,35 @@ async function runDocumentScannerAgent(mattersArg, adminDataArg) {
     });
   }
 
-  // Save auto-populated dates back to adminData
-  if (autoPopulated > 0) saveAdminData(adminData);
+  const { rows: finalCountRows } = await pool.query(
+    "SELECT COUNT(*) FROM flags WHERE resolved_at IS NULL"
+  );
+  const openFlags = parseInt(finalCountRows[0].count);
 
-  // Persist flags
-  saveFlags(flags);
-
-  const openFlags    = flags.filter(f => !f.resolvedAt);
-  const highFlags    = openFlags.filter(f => f.severity === 'high').length;
-  const mediumFlags  = openFlags.filter(f => f.severity === 'medium').length;
-  const newFlagCount = openFlags.length - prevFlagCount;
+  const { rows: highRows } = await pool.query(
+    "SELECT COUNT(*) FROM flags WHERE resolved_at IS NULL AND severity='high'"
+  );
+  const highFlags   = parseInt(highRows[0].count);
+  const mediumFlags = openFlags - highFlags;
 
   const history = {
-    lastRun:       now,
+    lastRun:        now,
     mattersScanned: scanResults.length,
     docsScanned,
     autoPopulated,
-    flagsRaised:   Math.max(0, newFlagCount),
-    openFlags:     openFlags.length,
+    flagsRaised:    Math.max(0, openFlags - prevFlagCount),
+    openFlags,
     highFlags,
     mediumFlags,
-    results:       scanResults,
+    results:        scanResults,
     errors,
   };
-  saveHistory(history);
+  await saveScanHistory(history);
 
-  console.log(`[ScanAgent] Scan complete: ${scanResults.length} matters, ${docsScanned} docs, ${autoPopulated} auto-populated, ${openFlags.length} open flags (${highFlags} high)`);
+  console.log(`[ScanAgent] Scan complete: ${scanResults.length} matters, ${docsScanned} docs, ${autoPopulated} auto-populated, ${openFlags} open flags (${highFlags} high)`);
   return history;
 }
 
-// Allow standalone run: node agents/documentScannerAgent.js
 if (require.main === module) {
   runDocumentScannerAgent()
     .then(r => { console.log(JSON.stringify({ openFlags: r.openFlags, highFlags: r.highFlags, docsScanned: r.docsScanned }, null, 2)); process.exit(0); })

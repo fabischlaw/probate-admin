@@ -22,6 +22,7 @@
     "node-schedule": "^2.1.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^3.11.174",
+    "pg": "^8.21.0",
     "puppeteer": "^24.42.0"
   },
   "devDependencies": {
