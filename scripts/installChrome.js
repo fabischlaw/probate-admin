@@ -19,35 +19,63 @@ try {
   console.log('Could not check disk space');
 }
 
-console.log('Installing Chrome...');
-try {
-  execSync('npx puppeteer browsers install chrome', {
+const spawnEnv = { ...process.env, PUPPETEER_CACHE_DIR: cacheDir, PUPPETEER_SKIP_DOWNLOAD: undefined };
+
+function tryInstall(browser) {
+  console.log(`\nInstalling ${browser}...`);
+  execSync(`npx puppeteer browsers install ${browser}`, {
     stdio: 'inherit',
-    env: { ...process.env, PUPPETEER_CACHE_DIR: cacheDir, PUPPETEER_SKIP_DOWNLOAD: undefined },
+    env: spawnEnv,
     timeout: 300000,
   });
-  console.log('Chrome install command completed');
+}
 
+function findBinaries() {
+  try {
+    const result = execSync(
+      `find ${cacheDir} -type f | head -20`,
+      { encoding: 'utf8' }
+    );
+    console.log('All files in cache:\n', result || '(empty)');
+  } catch (e) {
+    console.log('Could not list cache dir');
+  }
+}
+
+// Try chrome-headless-shell first (smaller, more reliable on cloud)
+let installed = false;
+try {
+  tryInstall('chrome-headless-shell');
+  installed = true;
+  console.log('chrome-headless-shell install completed');
+} catch (e) {
+  console.error('chrome-headless-shell install error:', e.message);
+  findBinaries();
+}
+
+// Fall back to full chrome if shell failed
+if (!installed) {
+  try {
+    tryInstall('chrome');
+    installed = true;
+    console.log('chrome install completed');
+  } catch (e) {
+    console.error('chrome install error:', e.message);
+    findBinaries();
+  }
+}
+
+if (!installed) {
+  console.log('WARNING: No Chrome variant installed - form generation will be unavailable');
+} else {
+  // Verify and report what was found
   const { executablePath } = require('puppeteer');
   const chromePath = executablePath();
-  console.log('Expected Chrome path:', chromePath);
-
+  console.log('\nExpected Chrome path:', chromePath);
   if (fs.existsSync(chromePath)) {
     console.log('✓ Chrome binary verified at expected path');
   } else {
     console.log('✗ Chrome binary NOT found at expected path');
-    console.log('Contents of cache dir:');
-    try {
-      const ls = execSync(
-        `find ${cacheDir} -name "chrome" -o -name "chrome-linux64" 2>/dev/null | head -20`,
-        { encoding: 'utf8' }
-      );
-      console.log(ls || 'No chrome files found');
-    } catch (e) {
-      console.log('Could not list cache dir');
-    }
+    findBinaries();
   }
-} catch (e) {
-  console.error('Chrome install error:', e.message);
-  console.log('WARNING: Chrome not installed - form generation will be unavailable');
 }

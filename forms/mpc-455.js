@@ -86,7 +86,11 @@ async function fillMPC455(matter, contacts, assets, toggleAnswers = {}, personCo
   // Per probe: TextField4_43 = First Name, TextField4_44 = Last Name, TextField4_45 = M.I.
   const consenteeName = personConfig?.nomineeForConsent || renomineeName;
 
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+  });
   const page    = await browser.newPage();
   await page.goto(COURT_URL, { waitUntil: 'networkidle0' });
   try { await page.waitForSelector('[name="DocketNo_8"]', { timeout: 10000 }); } catch (_) {}

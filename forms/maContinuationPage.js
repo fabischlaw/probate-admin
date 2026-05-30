@@ -153,7 +153,11 @@ async function generateContinuationPages(options) {
 </html>`;
 
   // ── Render with Puppeteer ─────────────────────────────────────────────────
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+  });
   const page    = await browser.newPage();
   await page.setContent(html, { waitUntil: 'load' });
 

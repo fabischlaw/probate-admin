@@ -34,7 +34,11 @@ async function fillMPC150(matter, contacts, assets, toggleAnswers = {}) {
     warnings.push('MPC-150: Could not determine MA division from decedent address — set "County of decedent\'s domicile" in Case Facts.');
   }
 
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+  });
   const page    = await browser.newPage();
   await page.goto(COURT_URL, { waitUntil: 'networkidle0' });
   try { await page.waitForSelector('[name="LnName_7"]', { timeout: 10000 }); } catch(_) {}

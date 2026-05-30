@@ -23,7 +23,11 @@ async function fillMPC750(matter, contacts, assets, toggleAnswers = {}) {
   const today   = new Date();
   const sigDate = `${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}/${today.getFullYear()}`;
 
-  const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const browser = await puppeteer.launch({
+    headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
+  });
   const page    = await browser.newPage();
   await page.goto(COURT_URL, { waitUntil: 'networkidle0' });
   try { await page.waitForSelector('[name="DocketNo_4"]', { timeout: 10000 }); } catch (_) {}
