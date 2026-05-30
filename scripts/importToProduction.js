@@ -82,7 +82,7 @@ async function run() {
     for (const u of users) {
       const { rowCount } = await client.query(
         `INSERT INTO users (id, name, email, role, password_hash, created_at, last_login, active, must_change_password)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (id) DO NOTHING`,
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT DO NOTHING`,
         [u.id, u.name, u.email, u.role, u.passwordHash,
          u.createdAt || new Date().toISOString(), u.lastLogin || null,
          u.active !== false, u.mustChangePassword !== false]
