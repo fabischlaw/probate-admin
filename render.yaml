@@ -3,7 +3,7 @@ services:
     name: probate-admin
     runtime: node
     plan: starter
-    buildCommand: npm install && (npx puppeteer browsers install chrome || echo "Puppeteer chrome install skipped")
+    buildCommand: "PUPPETEER_SKIP_DOWNLOAD=true npm install && (npx puppeteer browsers install chrome || echo 'Chrome install failed - continuing')"
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
@@ -14,8 +14,12 @@ services:
         generateValue: true
       - key: DV_API_KEY
         sync: false
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
       - key: PUPPETEER_CACHE_DIR
         value: /opt/render/project/.cache/puppeteer
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /opt/render/project/.cache/puppeteer/chrome/linux-147.0.7727.57/chrome-linux64/chrome
     disk:
       name: probate-data
       mountPath: /var/data
