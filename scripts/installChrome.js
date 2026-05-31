@@ -3,79 +3,72 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 
-const cacheDir = process.env.PUPPETEER_CACHE_DIR ||
-  '/opt/render/project/.cache/puppeteer';
-
-console.log('=== Chrome Install Script ===');
-console.log('Node version:', process.version);
+console.log('=== Finding Chrome ===');
 console.log('Platform:', process.platform);
-console.log('PUPPETEER_CACHE_DIR:', cacheDir);
-console.log('PUPPETEER_SKIP_DOWNLOAD:', process.env.PUPPETEER_SKIP_DOWNLOAD);
+console.log('Node:', process.version);
 
-try {
-  const df = execSync('df -h /opt/render/project', { encoding: 'utf8' });
-  console.log('Disk space:', df);
-} catch (e) {
-  console.log('Could not check disk space');
+const SYSTEM_PATHS = [
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+  '/snap/bin/chromium',
+];
+
+// 1. Check system paths first
+let foundChrome = null;
+for (const p of SYSTEM_PATHS) {
+  if (fs.existsSync(p)) {
+    foundChrome = p;
+    console.log('Found system Chrome at:', p);
+    break;
+  }
 }
 
+// 2. Try `which` if no direct match
+if (!foundChrome) {
+  try {
+    foundChrome = execSync(
+      'which chromium || which chromium-browser || which google-chrome',
+      { encoding: 'utf8' }
+    ).trim().split('\n')[0];
+    if (foundChrome) console.log('Found Chrome via which:', foundChrome);
+  } catch (_) {}
+}
+
+if (foundChrome) {
+  fs.writeFileSync('/tmp/chrome-path.txt', foundChrome);
+  console.log('Chrome path saved to /tmp/chrome-path.txt');
+  process.exit(0);
+}
+
+// 3. Fall back to Puppeteer download (chrome-headless-shell, then full chrome)
+console.log('No system Chrome found — falling back to Puppeteer download...');
+
+const cacheDir = process.env.PUPPETEER_CACHE_DIR || '/opt/render/project/.cache/puppeteer';
 const spawnEnv = { ...process.env, PUPPETEER_CACHE_DIR: cacheDir, PUPPETEER_SKIP_DOWNLOAD: undefined };
 
-function tryInstall(browser) {
-  console.log(`\nInstalling ${browser}...`);
-  execSync(`npx puppeteer browsers install ${browser}`, {
-    stdio: 'inherit',
-    env: spawnEnv,
-    timeout: 300000,
-  });
-}
-
-function findBinaries() {
+let downloaded = false;
+for (const browser of ['chrome-headless-shell', 'chrome']) {
   try {
-    const result = execSync(
-      `find ${cacheDir} -type f | head -20`,
-      { encoding: 'utf8' }
-    );
-    console.log('All files in cache:\n', result || '(empty)');
+    console.log(`Trying: npx puppeteer browsers install ${browser}`);
+    execSync(`npx puppeteer browsers install ${browser}`, {
+      stdio: 'inherit',
+      env: spawnEnv,
+      timeout: 300000,
+    });
+    downloaded = true;
+    console.log(`${browser} installed successfully`);
+    break;
   } catch (e) {
-    console.log('Could not list cache dir');
+    console.error(`${browser} install failed:`, e.message);
+    try {
+      const files = execSync(`find ${cacheDir} -type f | head -20`, { encoding: 'utf8' });
+      console.log('Cache contents:', files || '(empty)');
+    } catch (_) {}
   }
 }
 
-// Try chrome-headless-shell first (smaller, more reliable on cloud)
-let installed = false;
-try {
-  tryInstall('chrome-headless-shell');
-  installed = true;
-  console.log('chrome-headless-shell install completed');
-} catch (e) {
-  console.error('chrome-headless-shell install error:', e.message);
-  findBinaries();
-}
-
-// Fall back to full chrome if shell failed
-if (!installed) {
-  try {
-    tryInstall('chrome');
-    installed = true;
-    console.log('chrome install completed');
-  } catch (e) {
-    console.error('chrome install error:', e.message);
-    findBinaries();
-  }
-}
-
-if (!installed) {
-  console.log('WARNING: No Chrome variant installed - form generation will be unavailable');
-} else {
-  // Verify and report what was found
-  const { executablePath } = require('puppeteer');
-  const chromePath = executablePath();
-  console.log('\nExpected Chrome path:', chromePath);
-  if (fs.existsSync(chromePath)) {
-    console.log('✓ Chrome binary verified at expected path');
-  } else {
-    console.log('✗ Chrome binary NOT found at expected path');
-    findBinaries();
-  }
+if (!downloaded) {
+  console.log('WARNING: No Chrome available — form generation will be unavailable at runtime');
 }

@@ -1,6 +1,7 @@
 'use strict';
 const puppeteer = require('puppeteer');
 const { PDFDocument } = require('pdf-lib');
+const { getChromePath } = require('../config/chromeConfig');
 
 const MAX_ROWS_PER_PAGE = 20;
 
@@ -153,9 +154,10 @@ async function generateContinuationPages(options) {
 </html>`;
 
   // ── Render with Puppeteer ─────────────────────────────────────────────────
+  const chromePath = getChromePath();
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath: chromePath || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   const page    = await browser.newPage();

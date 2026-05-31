@@ -1,11 +1,13 @@
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { getChromePath } = require('../config/chromeConfig');
 
 async function inspectForm(formPath, screenshotPath) {
+  const chromePath = getChromePath();
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath: chromePath || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   const page = await browser.newPage();

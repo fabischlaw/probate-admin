@@ -2,6 +2,7 @@
 const puppeteer = require('puppeteer');
 const { addr, phone, email, formatDate, identifyContacts, fullAddr, getMatterCaption, NON_HEIR_TYPES, FIRM_PROFILE, getCountyFromAddress, MA_COUNTY_TO_DIVISION } = require('./common');
 const { generateContinuationPages, mergeWithContinuation } = require('./maContinuationPage');
+const { getChromePath } = require('../config/chromeConfig');
 
 const COURT_URL = 'https://courtforms.jud.state.ma.us/publicforms/PFC0020';
 
@@ -60,9 +61,10 @@ async function fillMPC550(matter, contacts, assets, toggleAnswers = {}) {
   const sigDate   = `${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}/${today.getFullYear()}`;
   const noticeDate = toggleAnswers.noticeDate || sigDate;
 
+  const chromePath = getChromePath();
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath: chromePath || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   const page    = await browser.newPage();

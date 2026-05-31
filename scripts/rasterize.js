@@ -2,14 +2,16 @@
 const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
+const { getChromePath } = require('../config/chromeConfig');
 
 const [,, pdfPath, outDir] = process.argv;
 if (!pdfPath) { console.error('Usage: node rasterize.js <pdf> <outDir>'); process.exit(1); }
 
 (async () => {
+  const chromePath = getChromePath();
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath: chromePath || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   const page = await browser.newPage();

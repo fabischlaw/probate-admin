@@ -3,7 +3,7 @@ services:
     name: probate-admin
     runtime: node
     plan: starter
-    buildCommand: "npm ci && node scripts/installChrome.js"
+    buildCommand: "npm ci && apt-get install -y chromium || apt-get install -y chromium-browser || node scripts/installChrome.js"
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
@@ -13,6 +13,8 @@ services:
       - key: DV_API_KEY
         sync: false
       - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
         value: "true"
       - key: PUPPETEER_CACHE_DIR
         value: /opt/render/project/.cache/puppeteer

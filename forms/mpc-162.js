@@ -3,6 +3,7 @@ const puppeteer = require('puppeteer');
 const { PDFDocument } = require('pdf-lib');
 const { addr, formatDate, identifyContacts, fullAddr, getMatterCaption, NON_HEIR_TYPES, safeMI, getCountyFromAddress, MA_COUNTY_TO_DIVISION } = require('./common');
 const { generateContinuationPages, mergeWithContinuation } = require('./maContinuationPage');
+const { getChromePath } = require('../config/chromeConfig');
 
 const COURT_URL = 'https://courtforms.jud.state.ma.us/publicforms/PFC0009';
 
@@ -119,9 +120,10 @@ async function fillMPC162(matter, contacts, assets, toggleAnswers = {}) {
     );
   }
 
+  const chromePath = getChromePath();
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath: chromePath || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   const page    = await browser.newPage();

@@ -1,6 +1,7 @@
 'use strict';
 const puppeteer = require('puppeteer');
 const { addr, phone, formatDate, identifyContacts, getCountyFromAddress, MA_COUNTY_TO_DIVISION } = require('./common');
+const { getChromePath } = require('../config/chromeConfig');
 
 const COURT_URL = 'https://courtforms.jud.state.ma.us/publicforms/PFC0083';
 
@@ -44,9 +45,10 @@ async function fillMPC480(matter, contacts, assets, toggleAnswers = {}, witnessO
   const sigDate = `${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}/${today.getFullYear()}`;
   const willDate = toggleAnswers.willDate ? formatDate(toggleAnswers.willDate) : (toggleAnswers.willDateFormatted || '');
 
+  const chromePath = getChromePath();
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+    executablePath: chromePath || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu']
   });
   const page    = await browser.newPage();
