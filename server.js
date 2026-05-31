@@ -192,6 +192,39 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/api/chrome-diag', (req, res) => {
+  const { execSync } = require('child_process');
+  const fs = require('fs');
+  const cacheDir = process.env.PUPPETEER_CACHE_DIR ||
+    '/opt/render/project/.cache/puppeteer';
+
+  let cacheContents = 'error';
+  let allFiles = 'error';
+
+  try {
+    cacheContents = fs.existsSync(cacheDir)
+      ? fs.readdirSync(cacheDir, { withFileTypes: true })
+          .map(d => d.name + (d.isDirectory() ? '/' : ''))
+      : 'directory does not exist';
+  } catch (e) { cacheContents = e.message; }
+
+  try {
+    allFiles = execSync(
+      `find ${cacheDir} -type f 2>/dev/null | head -20`,
+      { encoding: 'utf8', timeout: 5000 }
+    ).trim().split('\n').filter(Boolean);
+  } catch (e) { allFiles = e.message; }
+
+  res.json({
+    cacheDir,
+    cacheDirExists: fs.existsSync(cacheDir),
+    cacheContents,
+    allFiles,
+    PUPPETEER_CACHE_DIR:        process.env.PUPPETEER_CACHE_DIR,
+    PUPPETEER_EXECUTABLE_PATH:  process.env.PUPPETEER_EXECUTABLE_PATH,
+  });
+});
+
 app.get('/api/diag', async (req, res) => {
   let dbConnected = false;
   let dbError = null;
