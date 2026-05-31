@@ -1730,6 +1730,10 @@ const schedule = require('node-schedule');
 (async () => {
   await initDatabase();
 
+  const { getChromePath } = require('./config/chromeConfig');
+  const chromePath = getChromePath();
+  console.log('[Startup] Chrome path:', chromePath || 'not found - using Puppeteer default');
+
   app.listen(PORT, () => {
     console.log(`ri-probate-app listening on http://localhost:${PORT}`);
   });

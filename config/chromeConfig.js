@@ -2,6 +2,7 @@
 
 const fs   = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const SYSTEM_PATHS = [
   '/usr/bin/chromium',
@@ -11,55 +12,52 @@ const SYSTEM_PATHS = [
   '/snap/bin/chromium',
 ];
 
+let _cached = null;
+
 function getChromePath() {
+  if (_cached) return _cached;
+
   // 1. Explicit env var
   if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-    console.log('[Chrome] Using PUPPETEER_EXECUTABLE_PATH:', process.env.PUPPETEER_EXECUTABLE_PATH);
-    return process.env.PUPPETEER_EXECUTABLE_PATH;
+    _cached = process.env.PUPPETEER_EXECUTABLE_PATH;
+    console.log('[Chrome] Using env var:', _cached);
+    return _cached;
   }
 
-  // 2. Saved path from build script
-  if (fs.existsSync('/tmp/chrome-path.txt')) {
-    try {
-      const saved = fs.readFileSync('/tmp/chrome-path.txt', 'utf8').trim();
-      if (saved && fs.existsSync(saved)) {
-        console.log('[Chrome] Using saved path:', saved);
-        return saved;
-      }
-    } catch (_) {}
-  }
-
-  // 3. Search Puppeteer cache — headless-shell first, then full chrome
+  // 2. Search Puppeteer cache at runtime
   const cacheDir = process.env.PUPPETEER_CACHE_DIR ||
     '/opt/render/project/.cache/puppeteer';
 
   if (fs.existsSync(cacheDir)) {
-    for (const sub of ['chrome-headless-shell', 'chrome']) {
-      const dir = path.join(cacheDir, sub);
-      if (!fs.existsSync(dir)) continue;
-      try {
-        const { execSync } = require('child_process');
-        const found = execSync(
-          `find ${dir} -type f -executable | head -1`,
-          { encoding: 'utf8' }
-        ).trim();
-        if (found) {
-          console.log('[Chrome] Found in cache:', found);
-          return found;
-        }
-      } catch (_) {}
+    try {
+      const result = execSync(
+        `find ${cacheDir} -type f \\( -name "chrome-headless-shell" -o -name "chrome" \\) 2>/dev/null | head -5`,
+        { encoding: 'utf8', timeout: 10000 }
+      ).trim();
+
+      if (result) {
+        const lines = result.split('\n').filter(Boolean);
+        const shell  = lines.find(l => l.includes('chrome-headless-shell') && !l.endsWith('.json') && !l.endsWith('.zip'));
+        const chrome = lines.find(l => l.endsWith('/chrome') && !l.includes('chrome-headless-shell'));
+        _cached = shell || chrome || lines[0];
+        console.log('[Chrome] Found in cache:', _cached);
+        return _cached;
+      }
+    } catch (e) {
+      console.log('[Chrome] Cache search failed:', e.message);
     }
   }
 
-  // 4. System paths
+  // 3. System paths
   for (const p of SYSTEM_PATHS) {
     if (fs.existsSync(p)) {
       console.log('[Chrome] Found system Chrome:', p);
-      return p;
+      _cached = p;
+      return _cached;
     }
   }
 
-  console.log('[Chrome] No Chrome found - using Puppeteer default');
+  console.log('[Chrome] No Chrome found - Puppeteer will use default');
   return null;
 }
 
