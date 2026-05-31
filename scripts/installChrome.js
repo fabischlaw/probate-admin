@@ -59,6 +59,24 @@ for (const browser of ['chrome-headless-shell', 'chrome']) {
     });
     downloaded = true;
     console.log(`${browser} installed successfully`);
+    // Find the actual binary and save its path for runtime use
+    try {
+      const subDir = browser === 'chrome-headless-shell' ? 'chrome-headless-shell' : 'chrome';
+      const binary = execSync(
+        `find ${cacheDir}/${subDir} -type f -executable 2>/dev/null | head -1`,
+        { encoding: 'utf8' }
+      ).trim();
+      if (binary) {
+        fs.writeFileSync('/tmp/chrome-path.txt', binary);
+        console.log('Chrome path saved:', binary);
+      } else {
+        console.log('WARNING: install reported success but no executable found in cache');
+        const files = execSync(`find ${cacheDir} -type f | head -30`, { encoding: 'utf8' });
+        console.log('Cache contents:', files || '(empty)');
+      }
+    } catch (e) {
+      console.log('Could not locate binary after install:', e.message);
+    }
     break;
   } catch (e) {
     console.error(`${browser} install failed:`, e.message);
